@@ -1,6 +1,6 @@
 #
 # Conditional build:
-%bcond_with	db3	# build with db3 instead of db 4.x
+%bcond_without	db3	# build with db3 instead of db 4.x
 #
 %define		ver		2.01
 %define		patchlvl	10
@@ -12,7 +12,7 @@ Summary(ru):	Программа анализа log-файла web/ftp/proxy-сервера
 Summary(uk):	Програма анал╕зу log-файлу web/ftp/proxy-сервера
 Name:		webalizer
 Version:	%{ver}_%{patchlvl}
-Release:	5
+Release:	6
 License:	GPL v2
 Group:		Networking/Utilities
 Source0:	ftp://ftp.mrunix.net/pub/webalizer/%{name}-%{ver}-%{patchlvl}-src.tar.bz2
@@ -21,6 +21,7 @@ Source1:	http://linux.gda.pl/pub/webalizer/%{name}_lang.polish
 # Source1-md5:	510bc595699373c4d7a8093a5ea10df3
 Patch0:		%{name}-debian-23.patch
 Patch1:		%{name}-nolibnsl.patch
+Patch2:		%{name}-conf.patch
 Icon:		webalizer.gif
 URL:		http://www.mrunix.net/webalizer/
 BuildRequires:	autoconf
@@ -82,6 +83,7 @@ Webalizer - це програма анал╕зу лог╕в web-сервера, що вида╓ статистику
 %setup -q -n %{name}-%{ver}-%{patchlvl}
 %patch0 -p1
 %patch1 -p1
+%patch2 -p1
 
 install %{SOURCE1} lang/
 
