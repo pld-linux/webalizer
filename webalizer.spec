@@ -1,22 +1,21 @@
 Summary:	The Webalizer - A web server log file analysis thingie
 Summary(pl):	Webalizer - analizator logów serwera www
 Name:		webalizer
-%define		ver	2.00
-%define		patchlvl 12
+%define		ver	2.01
+%define		patchlvl 06
 Version:	%{ver}_%{patchlvl}
-Release:	3
+Release:	1
 License:	GPL
 Group:		Networking/Utilities
 Group(pl):	Sieciowe/Narzêdzia
-Source0:	ftp://ftp.mrunix.net/pub/webalizer/pre-release/%{name}-%{ver}-%{patchlvl}-src.tar.bz2
-Patch0:		%{name}-shared_gd.patch
+Source0:	ftp://ftp.mrunix.net/pub/webalizer/%{name}-%{ver}-%{patchlvl}-src.tar.bz2
 Icon:		webalizer.gif
 URL:		http://www.mrunix.net/webalizer/
-BuildRequires:	db2-devel
 BuildRequires:	gd-devel >= 1.8.3
 BuildRequires:	libpng >= 1.0.8
 BuildRequires:	zlib-devel
 BuildRequires:	autoconf
+BuildRequires:	db3-devel
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -35,7 +34,6 @@ formacie HTML zawieraj±ce statystyki u¿ycia tego¿ serwera www.
 
 %prep
 %setup -q -n %{name}-%{ver}-%{patchlvl}
-%patch -p1
 
 %build
 aclocal
@@ -43,6 +41,8 @@ autoconf
 CFLAGS="$RPM_OPT_FLAGS -fsigned-char"; export CFLAGS
 %configure \
 	--with-gd \
+	--with-db \
+	--with-dblib \
 	--enable-dns 
 #--with-language=polish
 %{__make}
