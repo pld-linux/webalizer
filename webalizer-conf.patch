@@ -1,5 +1,5 @@
 --- ./sample.conf.org	Fri Sep 29 05:51:42 2000
-+++ ./sample.conf	Tue Apr 13 21:30:06 2004
++++ ./sample.conf	Tue Apr 13 22:49:47 2004
 @@ -107,9 +107,11 @@
  
  PageType	htm*
@@ -15,7 +15,7 @@
  
  # UseHTTPS should be used if the analysis is being run on a
  # secure server, and links to urls should use 'https://' instead
-@@ -383,7 +385,8 @@
+@@ -383,13 +385,16 @@
  #HideReferrer	mrunix.net/
  
  # This one hides non-referrers ("-" Direct requests)
@@ -25,7 +25,15 @@
  
  # Usually you want to hide these
  HideURL		*.gif
-@@ -408,10 +411,22 @@
+ HideURL		*.GIF
+ HideURL		*.jpg
+ HideURL		*.JPG
++HideURL		*.jpeg
++HideURL		*.JPEG
+ HideURL		*.png
+ HideURL		*.PNG
+ HideURL		*.ra
+@@ -408,10 +413,22 @@
  #GroupSite	*.aol.com
  #GroupSite	*.compuserve.com
  
@@ -52,7 +60,7 @@
  
  #GroupUser      root            Admin users
  #GroupUser      admin           Admin users
-@@ -421,11 +436,16 @@
+@@ -421,11 +438,16 @@
  # for browsers, and not display all the detail records.
  # (You should use MangleAgent to refine further...)
  
@@ -71,7 +79,7 @@
  #HideAgent	Lynx*
  
  # HideAllSites allows forcing individual sites to be hidden in the
-@@ -516,9 +536,9 @@
+@@ -516,9 +538,9 @@
  # engine, and the second is the URL variable used by that search engine
  # to define it's search terms.
  
