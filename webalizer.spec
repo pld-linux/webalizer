@@ -4,7 +4,7 @@ Name:		webalizer
 %define		ver	2.01
 %define		patchlvl 06
 Version:	%{ver}_%{patchlvl}
-Release:	2
+Release:	3
 License:	GPL
 Group:		Networking/Utilities
 Group(de):	Netzwerkwesen/Werkzeuge
@@ -12,7 +12,7 @@ Group(pl):	Sieciowe/Narzêdzia
 Source0:	ftp://ftp.mrunix.net/pub/webalizer/%{name}-%{ver}-%{patchlvl}-src.tar.bz2
 Icon:		webalizer.gif
 URL:		http://www.mrunix.net/webalizer/
-BuildRequires:	gd-devel >= 1.8.3
+BuildRequires:	gd-devel >= 2.0.1
 BuildRequires:	libpng >= 1.0.8
 BuildRequires:	zlib-devel
 BuildRequires:	autoconf
