@@ -8,8 +8,17 @@ if [ -n "$ENABLE" ] && [ "$ENABLE" = "YES" ]; then
 	export LC_ALL
 	
 	if [ -f /etc/webalizer.conf ]; then
-		webalizer -c /etc/webalizer.conf
+		if [ -n "$QUIET" ] && [ "$QUIET" = "YES" ]; then
+			webalizer -q -c /etc/webalizer.conf
+		else
+			webalizer -c /etc/webalizer.conf
+		fi
 	fi
-	
-	for i in /etc/webalizer/*.conf; do webalizer -c $i; done
+	if [ -n "$MULTIPLE" ] && [ "$MULTIPLE" = "YES" ]; then
+		if [ -n "$QUIET" ] && [ "$QUIET" = "YES" ]; then
+			for i in /etc/webalizer/*.conf; do webalizer -q -c $i; done
+		else
+			for i in /etc/webalizer/*.conf; do webalizer -c $i; done
+		fi
+	fi
 fi
