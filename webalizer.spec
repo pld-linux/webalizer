@@ -12,7 +12,7 @@ Summary(ru):	Программа анализа log-файла web/ftp/proxy-сервера
 Summary(uk):	Програма анал╕зу log-файлу web/ftp/proxy-сервера
 Name:		webalizer
 Version:	%{ver}_%{patchlvl}
-Release:	6
+Release:	6.1
 License:	GPL v2
 Group:		Networking/Utilities
 Source0:	ftp://ftp.mrunix.net/pub/webalizer/%{name}-%{ver}-%{patchlvl}-src.tar.bz2
@@ -22,6 +22,7 @@ Source1:	http://linux.gda.pl/pub/webalizer/%{name}_lang.polish
 Patch0:		%{name}-debian-23.patch
 Patch1:		%{name}-nolibnsl.patch
 Patch2:		%{name}-conf.patch
+Patch3:		%{name}-debian_gcc2_fix.patch
 Icon:		webalizer.gif
 URL:		http://www.mrunix.net/webalizer/
 BuildRequires:	autoconf
@@ -32,6 +33,8 @@ BuildRequires:	gettext-devel
 BuildRequires:	libpng >= 1.0.8
 BuildRequires:	zlib-devel
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
+
+%define		_webdir		/home/services/httpd
 
 %description
 The Webalizer is a web server log file analysis program which produces
@@ -84,6 +87,7 @@ Webalizer - це програма анал╕зу лог╕в web-сервера, що вида╓ статистику
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
+%patch3 -p1
 
 install %{SOURCE1} lang/
 
@@ -101,12 +105,12 @@ CFLAGS="%{rpmcflags} -fsigned-char"
 %install
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT{%{_sysconfdir}/%{name},%{_bindir},%{_mandir}/man1} \
-	$RPM_BUILD_ROOT/home/services/httpd/icons
+	$RPM_BUILD_ROOT%{_webdir}/icons
 
 install sample.conf $RPM_BUILD_ROOT%{_sysconfdir}/webalizer.conf
 install webalizer $RPM_BUILD_ROOT%{_bindir}
 install webalizer.1 $RPM_BUILD_ROOT%{_mandir}/man1
-install msfree.png $RPM_BUILD_ROOT/home/services/httpd/icons
+install msfree.png $RPM_BUILD_ROOT%{_webdir}/icons
 
 for lang in $(cd po && ls -1 *.mo); do
 	dir=$(echo "$lang" | sed -e 's#\.mo##g')
@@ -126,4 +130,4 @@ rm -rf $RPM_BUILD_ROOT
 %dir %{_sysconfdir}/%{name}
 %attr(755,root,root) %{_bindir}/webalizer
 %{_mandir}/man1/*
-/home/services/httpd/icons/*
+%{_webdir}/icons/*
