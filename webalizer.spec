@@ -1,7 +1,7 @@
 #
 # Conditional build:
 %bcond_with	db3	# build with db3 instead of db 4.x
-%bcond_with	lang_pl	# build with --language=polish
+%bcond_with	lang_pl	# build with \--language=polish
 #
 %define		ver		2.01
 %define		patchlvl	10
