@@ -1,8 +1,8 @@
 #
 # Conditional build:
-%bcond_with	db3
-%bcond_with	lang_pl
-
+%bcond_with	db3	# build with db3 instead of db 4.x
+%bcond_with	lang_pl	# build with --language=polish
+#
 %define		ver		2.01
 %define		patchlvl	10
 Summary:	The Webalizer - A web server log file analysis thingie
@@ -24,8 +24,8 @@ Icon:		webalizer.gif
 URL:		http://www.mrunix.net/webalizer/
 BuildRequires:	autoconf
 BuildRequires:	automake
-%{!?db3:BuildRequires:	db-devel}
-%{?db3:BuildRequires:	db3-devel}
+%{!?with_db3:BuildRequires:	db-devel}
+%{?with_db3:BuildRequires:	db3-devel}
 BuildRequires:	gd-devel >= 2.0.1
 BuildRequires:	libpng >= 1.0.8
 BuildRequires:	zlib-devel
