@@ -1,12 +1,20 @@
-diff -ru webalizer-1.31-06.old/configure.in webalizer-1.31-06/configure.in
---- webalizer-1.31-06.old/configure.in	Sat Feb 12 08:59:52 2000
-+++ webalizer-1.31-06/configure.in	Fri Feb 18 13:36:58 2000
-@@ -47,7 +47,7 @@
+--- webalizer-2.00-03/configure.in.wiget	Fri Mar  3 09:02:41 2000
++++ webalizer-2.00-03/configure.in	Mon Mar  6 02:19:01 2000
+@@ -16,7 +16,7 @@
+ AC_C_CHAR_UNSIGNED
+ 
+ dnl Check for command line arguments
+-AC_ARG_WITH(gdlib,--with-gdlib=DIR          Where to additionally look for libgd.a,
++AC_ARG_WITH(gdlib,--with-gdlib=DIR          Where to additionally look for libgd.so,
+ EXTRA_GDLIB="${withval}", EXTRA_GDLIB="")
+ AC_ARG_WITH(gd,--with-gd=DIR             Where to additionally look for gd headers,
+ EXTRA_GD="${withval}", EXTRA_GD="")
+@@ -96,7 +96,7 @@
  fi
  
  if test "$HAVE_LIBGD" = ""; then
-- AC_FIND_PATH(GDLOC,libgd.a,"", ${PREFIX}/lib ${PREFIX}/lib/gd /usr/local/lib /usr/local/lib/gd /usr/local/gd /usr/local/include /usr/local/include/gd /usr/lib/gd /usr/lib /lib ./ ./gd ${EXTRA_GDLIB} ${EXTRA_GD})
-+ AC_FIND_PATH(GDLOC,libgd.so,"", ${PREFIX}/lib ${PREFIX}/lib/gd /usr/local/lib /usr/local/lib/gd /usr/local/gd /usr/local/include /usr/local/include/gd /usr/lib/gd /usr/lib /lib ./ ./gd ${EXTRA_GDLIB} ${EXTRA_GD})
+- AC_FIND_PATH(GDLOC,libgd.a,"", ${PREFIX}/lib ${PREFIX}/lib/gd /usr/local/lib /usr/local/lib/gd /usr/local/gd /usr/local/include /usr/local/include/gd /usr/lib/gd /usr/lib /lib ./ ./gd ../gd ${EXTRA_GDLIB} ${EXTRA_GD})
++ AC_FIND_PATH(GDLOC,libgd.so,"", ${PREFIX}/lib ${PREFIX}/lib/gd /usr/local/lib /usr/local/lib/gd /usr/local/gd /usr/local/include /usr/local/include/gd /usr/lib/gd /usr/lib /lib ./ ./gd ../gd ${EXTRA_GDLIB} ${EXTRA_GD})
   if test "$GDLOC" = ""; then
    AC_MSG_ERROR(gd library not found... please install gd.)
   else
