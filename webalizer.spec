@@ -17,7 +17,7 @@ Icon:		webalizer.gif
 URL:		http://www.mrunix.net/webalizer/
 BuildRequires:	autoconf
 BuildRequires:	automake
-BuildRequires:	db3-devel
+BuildRequires:	db-devel
 BuildRequires:	gd-devel >= 2.0.1
 BuildRequires:	libpng >= 1.0.8
 BuildRequires:	zlib-devel
