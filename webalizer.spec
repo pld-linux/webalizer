@@ -1,5 +1,5 @@
-%define		ver	1.31
-%define		patchlvl 06
+%define		ver	2.00
+%define		patchlvl 03
 Summary:	The Webalizer - A web server log file analysis thingie
 Summary(pl):	Webalizer - analizator logów serwera www
 Name:		webalizer
@@ -8,7 +8,7 @@ Release:	1
 License:	GPL
 Group:		Networking/Utilities
 Group(pl):	Sieciowe/Narzêdzia
-Source:		ftp://ftp.mrunix.net/pub/webalizer/pre-release/%{name}-%{ver}-%{patchlvl}-src.tgz
+Source:		ftp://ftp.mrunix.net/pub/webalizer/pre-release/%{name}-%{ver}-%{patchlvl}-src.tar.bz2
 Patch:		webalizer-shared_gd.patch
 Icon:		webalizer.gif
 URL:		http://www.mrunix.net/webalizer/
@@ -38,7 +38,9 @@ formacie HTML zawieraj±ce statystyki u¿ycia tego¿ serwera www.
 %build
 aclocal
 autoconf
-%configure --with-gd
+%configure \
+	--with-gd \
+	--enable-dns 
 #--with-language=polish
 make CFLAGS="$RPM_OPT_FLAGS -fsigned-char"  
 
@@ -52,7 +54,7 @@ install -s webalizer $RPM_BUILD_ROOT%{_bindir}
 install webalizer.1 $RPM_BUILD_ROOT%{_mandir}/man1/webalizer.1
 install msfree.png $RPM_BUILD_ROOT/home/httpd/html/usage
 
-gzip -9nf CHANGES README country-codes.txt \
+gzip -9nf CHANGES *README* country-codes.txt \
 	$RPM_BUILD_ROOT%{_mandir}/man1/webalizer.1
 
 %clean
@@ -61,7 +63,7 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(644,root,root,755)
 %doc *.gz
-%config(noreplace) %{_sysconfdir}/webalizer.conf
+%config(noreplace) %verify(not size md5 mtime) %{_sysconfdir}/webalizer.conf
 %attr(755,root,root) %{_bindir}/webalizer
 %{_mandir}/man1/*
 /home/httpd/html/usage
