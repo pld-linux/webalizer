@@ -8,8 +8,8 @@ Release:	1
 License:	GPL
 Group:		Networking/Utilities
 Group(pl):	Sieciowe/Narzêdzia
-Source:		ftp://ftp.mrunix.net/pub/webalizer/pre-release/%{name}-%{ver}-%{patchlvl}-src.tar.bz2
-Patch:		webalizer-shared_gd.patch
+Source0:	ftp://ftp.mrunix.net/pub/webalizer/pre-release/%{name}-%{ver}-%{patchlvl}-src.tar.bz2
+Patch0:		webalizer-shared_gd.patch
 Icon:		webalizer.gif
 URL:		http://www.mrunix.net/webalizer/
 BuildRequires:	gd-devel >= 1.6.2
@@ -20,12 +20,13 @@ BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
 The Webalizer is a web server log file analysis program which produces
-usage statistics in HTML format for viewing with a browser.  The results
-are presented in both columnar and graphical format, which facilitates
-interpretation.  Yearly, monthly, daily and hourly usage statistics are
-presented, along with the ability to display usage by site, URL, referrer,
-user agent (browser) and country (user agent and referrer are only
-available if your web server produces combined log format files).
+usage statistics in HTML format for viewing with a browser. The
+results are presented in both columnar and graphical format, which
+facilitates interpretation. Yearly, monthly, daily and hourly usage
+statistics are presented, along with the ability to display usage by
+site, URL, referrer, user agent (browser) and country (user agent and
+referrer are only available if your web server produces combined log
+format files).
 
 %description -l pl
 Webalizer to program analizuj±cy logi serwera www i tworz±cy strony w
