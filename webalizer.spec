@@ -89,7 +89,7 @@ CFLAGS="%{rpmcflags} -fsigned-char"
 	--with-gd \
 	--with-db \
 	--with-dblib \
-	--enable-dns \
+	--enable-dns
 %{__make}
 
 %install
