@@ -23,6 +23,7 @@ Patch0:		%{name}-debian-23.patch
 Patch1:		%{name}-nolibnsl.patch
 Patch2:		%{name}-conf.patch
 Patch3:		%{name}-debian_gcc2_fix.patch
+Patch4:		%{name}-ac_lib64_hack.patch
 Icon:		webalizer.gif
 URL:		http://www.mrunix.net/webalizer/
 BuildRequires:	autoconf
@@ -88,6 +89,7 @@ Webalizer - це програма анал╕зу лог╕в web-сервера, що вида╓ статистику
 %patch1 -p1
 %patch2 -p1
 %patch3 -p1
+%patch4 -p1
 
 install %{SOURCE1} lang/
 
