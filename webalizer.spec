@@ -11,7 +11,8 @@ Vendor:		Bradford L. Barrett <brad@mrunix.net>
 Copyright:	GPL
 Group:		Networking/Utilities
 Group(pl):	Sieæ/U¿ytki
-#Icon:		webalizer.gif
+Icon:		webalizer.gif
+BuildPrereq:	gd-devel >= 1.3
 BuildRoot:	/tmp/%{name}-%{version}-root
 
 %description
