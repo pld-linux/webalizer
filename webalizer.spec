@@ -1,6 +1,6 @@
 #
 # Conditional build:
-%bcond_with	db3	# build with db3 instead of db 4.x
+%bcond_without	db3	# build with db3 instead of db 4.x
 #
 %define		ver		2.01
 %define		patchlvl	10
@@ -12,7 +12,7 @@ Summary(ru):	Программа анализа log-файла web/ftp/proxy-сервера
 Summary(uk):	Програма анал╕зу log-файлу web/ftp/proxy-сервера
 Name:		webalizer
 Version:	%{ver}_%{patchlvl}
-Release:	6.1
+Release:	7
 License:	GPL v2
 Group:		Networking/Utilities
 Source0:	ftp://ftp.mrunix.net/pub/webalizer/%{name}-%{ver}-%{patchlvl}-src.tar.bz2
@@ -34,7 +34,7 @@ BuildRequires:	libpng >= 1.0.8
 BuildRequires:	zlib-devel
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
-%define		_webdir		/home/services/httpd
+%define		_webdir		/home/httpd
 
 %description
 The Webalizer is a web server log file analysis program which produces
