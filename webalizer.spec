@@ -1,7 +1,8 @@
 #
 # Conditional build:
-# _with_db3	- use db3 instead of db package
-#
+%bcond_with	db3
+%bcond_with	lang_pl
+
 %define		ver		2.01
 %define		patchlvl	10
 Summary:	The Webalizer - A web server log file analysis thingie
@@ -11,7 +12,7 @@ Summary(pt_BR):	Um software para anАlise de arquivos de log de servidores WWW
 Summary(ru):	Программа анализа log-файла web/ftp/proxy-сервера
 Summary(uk):	Програма анал╕зу log-файлу web/ftp/proxy-сервера
 Name:		webalizer
-Version:	%{ver}_%{patchlvl}
+Version:	%{ver}_%{patchlvl}%{!?lang_pl:pl}
 Release:	2
 License:	GPL v2
 Group:		Networking/Utilities
@@ -23,8 +24,8 @@ Icon:		webalizer.gif
 URL:		http://www.mrunix.net/webalizer/
 BuildRequires:	autoconf
 BuildRequires:	automake
-%{!?_with_db3:BuildRequires:	db-devel}
-%{?_with_db3:BuildRequires:	db3-devel}
+%{!?db3:BuildRequires:	db-devel}
+%{?db3:BuildRequires:	db3-devel}
 BuildRequires:	gd-devel >= 2.0.1
 BuildRequires:	libpng >= 1.0.8
 BuildRequires:	zlib-devel
@@ -89,8 +90,11 @@ CFLAGS="%{rpmcflags} -fsigned-char"
 	--with-gd \
 	--with-db \
 	--with-dblib \
-	--enable-dns
-#--with-language=polish
+	--enable-dns \
+%if %{with lang_pl}
+	--with-language=polish
+%endif
+
 %{__make}
 
 %install
