@@ -16,6 +16,7 @@ Release:	2
 License:	GPL v2
 Group:		Networking/Utilities
 Source0:	ftp://ftp.mrunix.net/pub/webalizer/%{name}-%{ver}-%{patchlvl}-src.tar.bz2
+# Source0-md5:	26d0a3c142423678daed2d6f579525d8
 Patch0:		%{name}-ipv6.patch
 Patch1:		%{name}-nolibnsl.patch
 Icon:		webalizer.gif
