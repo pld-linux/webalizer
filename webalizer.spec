@@ -1,7 +1,6 @@
 #
 # Conditional build:
 %bcond_with	db3	# build with db3 instead of db 4.x
-%bcond_with	lang_pl	# build with \--language=polish
 #
 %define		ver		2.01
 %define		patchlvl	10
@@ -13,12 +12,12 @@ Summary(ru):	Программа анализа log-файла web/ftp/proxy-сервера
 Summary(uk):	Програма анал╕зу log-файлу web/ftp/proxy-сервера
 Name:		webalizer
 Version:	%{ver}_%{patchlvl}%{!?lang_pl:pl}
-Release:	4
+Release:	5
 License:	GPL v2
 Group:		Networking/Utilities
 Source0:	ftp://ftp.mrunix.net/pub/webalizer/%{name}-%{ver}-%{patchlvl}-src.tar.bz2
 # Source0-md5:	26d0a3c142423678daed2d6f579525d8
-Patch0:		%{name}-ipv6.patch
+Patch0:		%{name}-debian-23.patch
 Patch1:		%{name}-nolibnsl.patch
 Icon:		webalizer.gif
 URL:		http://www.mrunix.net/webalizer/
@@ -26,6 +25,7 @@ BuildRequires:	autoconf
 %{!?with_db3:BuildRequires:	db-devel}
 %{?with_db3:BuildRequires:	db3-devel}
 BuildRequires:	gd-devel >= 2.0.1
+BuildRequires:	gettext-devel
 BuildRequires:	libpng >= 1.0.8
 BuildRequires:	zlib-devel
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
@@ -90,10 +90,6 @@ CFLAGS="%{rpmcflags} -fsigned-char"
 	--with-db \
 	--with-dblib \
 	--enable-dns \
-%if %{with lang_pl}
-	--with-language=polish
-%endif
-
 %{__make}
 
 %install
@@ -106,10 +102,18 @@ install webalizer $RPM_BUILD_ROOT%{_bindir}
 install webalizer.1 $RPM_BUILD_ROOT%{_mandir}/man1
 install msfree.png $RPM_BUILD_ROOT/home/services/httpd/icons
 
+for lang in $(cd po && ls -1 *.mo); do
+	dir=$(echo "$lang" | sed -e 's#\.mo##g')
+	install -d $RPM_BUILD_ROOT%{_datadir}/locale/${dir}/LC_MESSAGES
+	install po/${lang} $RPM_BUILD_ROOT%{_datadir}/locale/${dir}/LC_MESSAGES/webalizer.mo
+done
+
+%find_lang %{name}
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
-%files
+%files -f %{name}.lang
 %defattr(644,root,root,755)
 %doc CHANGES *README* country-codes.txt
 %config(noreplace) %verify(not size md5 mtime) %{_sysconfdir}/webalizer.conf
