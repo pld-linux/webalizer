@@ -11,7 +11,7 @@ Group(pl):      Sieciowe/Narzêdzia
 Source:		ftp://ftp.mrunix.net/pub/webalizer/pre-release/%{name}-%{ver}-%{patchlvl}-src.tar.bz2
 Icon:		webalizer.gif
 URL:            http://www.mrunix.net/webalizer/
-BuildPrereq:	gd-devel >= 1.3
+BuildRequires:	gd-devel >= 1.3
 BuildRoot:	/tmp/%{name}-%{version}-root
 
 %description
