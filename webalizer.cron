@@ -1,6 +1,7 @@
 #!/bin/sh
 
 [ -f /etc/sysconfig/webalizer ] && . /etc/sysconfig/webalizer
+umask 0022
 
 if [ -n "$ENABLE" ] && [ "$ENABLE" = "YES" ]; then
 	LC_ALL=$LANG
