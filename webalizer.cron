@@ -17,9 +17,9 @@ if [ -n "$ENABLE" ] && [ "$ENABLE" = "YES" ]; then
 	fi
 	if [ -n "$MULTIPLE" ] && [ "$MULTIPLE" = "YES" ]; then
 		if [ -n "$QUIET" ] && [ "$QUIET" = "YES" ]; then
-			for i in /etc/webalizer/*.conf; do webalizer -q -c $i; done
+			for i in $(ls /etc/webalizer/*.conf 2>/dev/null); do webalizer -q -c $i; done
 		else
-			for i in /etc/webalizer/*.conf; do webalizer -c $i; done
+			for i in $(ls /etc/webalizer/*.conf 2>/dev/null); do webalizer -c $i; done
 		fi
 	fi
 fi
