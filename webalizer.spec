@@ -1,5 +1,5 @@
 %define		ver	2.00
-%define		patchlvl 04
+%define		patchlvl 07
 Summary:	The Webalizer - A web server log file analysis thingie
 Summary(pl):	Webalizer - analizator logów serwera www
 Name:		webalizer
