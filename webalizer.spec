@@ -7,6 +7,7 @@ Version:	%{ver}_%{patchlvl}
 Release:	1
 License:	GPL
 Group:		Networking/Utilities
+Group(de):	Netzwerkwesen/Werkzeuge
 Group(pl):	Sieciowe/Narzêdzia
 Source0:	ftp://ftp.mrunix.net/pub/webalizer/%{name}-%{ver}-%{patchlvl}-src.tar.bz2
 Icon:		webalizer.gif
@@ -38,7 +39,7 @@ formacie HTML zawieraj±ce statystyki u¿ycia tego¿ serwera www.
 %build
 aclocal
 autoconf
-CFLAGS="$RPM_OPT_FLAGS -fsigned-char"; export CFLAGS
+CFLAGS="%{?debug:-O -g}%{!?debug:$RPM_OPT_FLAGS} -fsigned-char"
 %configure \
 	--with-gd \
 	--with-db \
@@ -53,12 +54,11 @@ install -d $RPM_BUILD_ROOT{%{_sysconfdir},%{_bindir},%{_mandir}/man1} \
 	$RPM_BUILD_ROOT/home/httpd/html/usage
 
 install sample.conf $RPM_BUILD_ROOT%{_sysconfdir}/webalizer.conf
-install -s webalizer $RPM_BUILD_ROOT%{_bindir}
+install webalizer $RPM_BUILD_ROOT%{_bindir}
 install webalizer.1 $RPM_BUILD_ROOT%{_mandir}/man1/
 install msfree.png $RPM_BUILD_ROOT/home/httpd/html/usage
 
-gzip -9nf CHANGES *README* country-codes.txt \
-	$RPM_BUILD_ROOT%{_mandir}/man1/*
+gzip -9nf CHANGES *README* country-codes.txt
 
 %clean
 rm -rf $RPM_BUILD_ROOT
