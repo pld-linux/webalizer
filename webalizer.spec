@@ -16,8 +16,9 @@ URL:		http://www.mrunix.net/webalizer/
 BuildRequires:	gd-devel >= 2.0.1
 BuildRequires:	libpng >= 1.0.8
 BuildRequires:	zlib-devel
-BuildRequires:	autoconf
 BuildRequires:	db3-devel
+BuildRequires:	autoconf
+BuildRequires:	automake
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
