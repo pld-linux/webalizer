@@ -7,7 +7,7 @@ ENABLE="YES"
 # LANG="pl_PL"
 
 # Allow multiple configs in /etc/webalizer/
-# MULTIPLE="YES"
+MULTIPLE="YES"
 
 # Supress messages
 # QUIET="YES"
