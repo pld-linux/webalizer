@@ -19,8 +19,8 @@ Source0:	ftp://ftp.mrunix.net/pub/webalizer/%{name}-%{ver}-%{patchlvl}-src.tar.b
 # Source0-md5:	26d0a3c142423678daed2d6f579525d8
 Source1:	http://linux.gda.pl/pub/webalizer/%{name}_lang.polish
 # Source1-md5:	510bc595699373c4d7a8093a5ea10df3
-Source2:	webalizer.sysconfig
-Source3:	webalizer.cron
+Source2:	%{name}.sysconfig
+Source3:	%{name}.cron
 Patch0:		%{name}-debian-23.patch
 Patch1:		%{name}-nolibnsl.patch
 Patch2:		%{name}-conf.patch
