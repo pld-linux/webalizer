@@ -4,7 +4,7 @@ Name:		webalizer
 %define		ver	2.01
 %define		patchlvl 06
 Version:	%{ver}_%{patchlvl}
-Release:	1
+Release:	2
 License:	GPL
 Group:		Networking/Utilities
 Group(de):	Netzwerkwesen/Werkzeuge
@@ -39,7 +39,7 @@ formacie HTML zawieraj±ce statystyki u¿ycia tego¿ serwera www.
 %build
 aclocal
 autoconf
-CFLAGS="%{?debug:-O0 -g}%{!?debug:$RPM_OPT_FLAGS} -fsigned-char"
+CFLAGS="%{rpmcflags} -fsigned-char"
 %configure \
 	--with-gd \
 	--with-db \
@@ -51,12 +51,12 @@ CFLAGS="%{?debug:-O0 -g}%{!?debug:$RPM_OPT_FLAGS} -fsigned-char"
 %install
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT{%{_sysconfdir},%{_bindir},%{_mandir}/man1} \
-	$RPM_BUILD_ROOT/home/httpd/html/usage
+	$RPM_BUILD_ROOT/home/httpd/icons
 
 install sample.conf $RPM_BUILD_ROOT%{_sysconfdir}/webalizer.conf
 install webalizer $RPM_BUILD_ROOT%{_bindir}
-install webalizer.1 $RPM_BUILD_ROOT%{_mandir}/man1/
-install msfree.png $RPM_BUILD_ROOT/home/httpd/html/usage
+install webalizer.1 $RPM_BUILD_ROOT%{_mandir}/man1
+install msfree.png $RPM_BUILD_ROOT/home/httpd/icons
 
 gzip -9nf CHANGES *README* country-codes.txt
 
@@ -69,4 +69,4 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %verify(not size md5 mtime) %{_sysconfdir}/webalizer.conf
 %attr(755,root,root) %{_bindir}/webalizer
 %{_mandir}/man1/*
-/home/httpd/html/usage
+/home/httpd/icons/*
