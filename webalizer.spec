@@ -74,7 +74,7 @@ Webalizer - це програма анал╕зу лог╕в web-сервера, що вида╓ статистику
 %patch0 -p1
 
 %build
-aclocal
+%{__aclocal}
 %{__autoconf}
 CFLAGS="%{rpmcflags} -fsigned-char"
 %configure \
