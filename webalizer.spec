@@ -4,19 +4,20 @@ Name:		webalizer
 %define		ver	2.01
 %define		patchlvl 09
 Version:	%{ver}_%{patchlvl}
-Release:	1
+Release:	2
 License:	GPL
 Group:		Networking/Utilities
 Source0:	ftp://ftp.mrunix.net/pub/webalizer/%{name}-%{ver}-%{patchlvl}-src.tar.bz2
 Patch0:		%{name}-%{ver}-06-ipv6-20010902.patch
+Patch1:		%{name}-security.patch
 Icon:		webalizer.gif
 URL:		http://www.mrunix.net/webalizer/
+BuildRequires:	autoconf
+BuildRequires:	automake
+BuildRequires:	db3-devel
 BuildRequires:	gd-devel >= 2.0.1
 BuildRequires:	libpng >= 1.0.8
 BuildRequires:	zlib-devel
-BuildRequires:	db3-devel
-BuildRequires:	autoconf
-BuildRequires:	automake
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -36,6 +37,7 @@ formacie HTML zawieraj±ce statystyki u¿ycia tego¿ serwera www.
 %prep
 %setup -q -n %{name}-%{ver}-%{patchlvl}
 %patch0 -p1
+%patch1 -p1
 
 %build
 aclocal
