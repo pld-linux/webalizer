@@ -3,15 +3,14 @@
 Summary:	The Webalizer - A web server log file analysis thingie
 Summary(pl):	Webalizer - analizator logów serwera www
 Name:		webalizer
-Version:	%{ver}_%{patchlvl}
-Release:	1
-URL:		http://www.mrunix.net/webalizer/
+Version:        %{ver}_%{patchlvl}
+Release:        1
+Copyright:      GPL
+Group:          Networking/Utilities
+Group(pl):      Sieciowe/Narzêdzia
 Source:		ftp://ftp.mrunix.net/pub/webalizer/pre-release/%{name}-%{ver}-%{patchlvl}-src.tar.bz2
-Vendor:		Bradford L. Barrett <brad@mrunix.net>
-Copyright:	GPL
-Group:		Networking/Utilities
-Group(pl):	Sieæ/U¿ytki
 Icon:		webalizer.gif
+URL:            http://www.mrunix.net/webalizer/
 BuildPrereq:	gd-devel >= 1.3
 BuildRoot:	/tmp/%{name}-%{version}-root
 
@@ -38,17 +37,16 @@ make CFLAGS="$RPM_OPT_FLAGS -fsigned-char"
 
 %install
 rm -rf $RPM_BUILD_ROOT
+install -d $RPM_BUILD_ROOT{/etc,%{_bindir},%{_mandir}/man1} \
+	$RPM_BUILD_ROOT/home/httpd/html/usage
 
-install -d $RPM_BUILD_ROOT/etc
-install -d $RPM_BUILD_ROOT%{_bindir}
-install -d $RPM_BUILD_ROOT%{_mandir}/man1
-install -m644 sample.conf $RPM_BUILD_ROOT/etc/webalizer.conf
-install -m755 -s webalizer $RPM_BUILD_ROOT%{_bindir}
-install -m644 webalizer.1 $RPM_BUILD_ROOT%{_mandir}/man1/webalizer.1
-gzip -9nf CHANGES README country-codes.txt $RPM_BUILD_ROOT%{_mandir}/man1/webalizer.1
+install sample.conf $RPM_BUILD_ROOT/etc/webalizer.conf
+install -s webalizer $RPM_BUILD_ROOT%{_bindir}
+install webalizer.1 $RPM_BUILD_ROOT%{_mandir}/man1/webalizer.1
+install msfree.gif $RPM_BUILD_ROOT/home/httpd/html/usage
 
-install -d $RPM_BUILD_ROOT/home/httpd/html/usage
-install -m644 msfree.gif $RPM_BUILD_ROOT/home/httpd/html/usage
+gzip -9nf CHANGES README country-codes.txt \
+	$RPM_BUILD_ROOT%{_mandir}/man1/webalizer.1
 
 %clean
 rm -rf $RPM_BUILD_ROOT
