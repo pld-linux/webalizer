@@ -1,7 +1,7 @@
 %define		ver		2.01
 %define		patchlvl	10
 Summary:	The Webalizer - A web server log file analysis thingie
-Summary(es):	Software para anАlisis de archivos de log de servidores WWW.
+Summary(es):	Software para anАlisis de archivos de log de servidores WWW
 Summary(pl):	Webalizer - analizator logСw serwera www
 Summary(pt_BR):	Um software para anАlise de arquivos de log de servidores WWW
 Summary(ru):	Программа анализа log-файла web/ftp/proxy-сервера
