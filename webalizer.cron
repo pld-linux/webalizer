@@ -3,9 +3,9 @@
 [ -f /etc/sysconfig/webalizer ] && . /etc/sysconfig/webalizer
 
 if [ -n "$ENABLE" ] && [ "$ENABLE" = "YES" ]; then
-	LC_LANG=$LANG
+	LC_ALL=$LANG
 	export LANG
-	export LC_LANG
+	export LC_ALL
 	
 	if [ -f /etc/webalizer.conf ]; then
 		webalizer -c /etc/webalizer.conf
