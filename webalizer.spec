@@ -12,13 +12,15 @@ Summary(ru):	Программа анализа log-файла web/ftp/proxy-сервера
 Summary(uk):	Програма анал╕зу log-файлу web/ftp/proxy-сервера
 Name:		webalizer
 Version:	%{ver}_%{patchlvl}
-Release:	9
+Release:	10
 License:	GPL v2
 Group:		Networking/Utilities
 Source0:	ftp://ftp.mrunix.net/pub/webalizer/%{name}-%{ver}-%{patchlvl}-src.tar.bz2
 # Source0-md5:	26d0a3c142423678daed2d6f579525d8
 Source1:	http://linux.gda.pl/pub/webalizer/%{name}_lang.polish
 # Source1-md5:	510bc595699373c4d7a8093a5ea10df3
+Source2:	webalizer.sysconfig
+Source3:	webalizer.cron
 Patch0:		%{name}-debian-23.patch
 Patch1:		%{name}-nolibnsl.patch
 Patch2:		%{name}-conf.patch
@@ -105,12 +107,16 @@ CFLAGS="%{rpmcflags} -fsigned-char"
 %install
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT{%{_sysconfdir}/%{name},%{_bindir},%{_mandir}/man1} \
-	$RPM_BUILD_ROOT%{_webdir}/icons
+	$RPM_BUILD_ROOT{%{_webdir}/icons,%{_sysconfdir}/sysconfig,%{_sysconfdir}/cron.hourly}
 
 install sample.conf $RPM_BUILD_ROOT%{_sysconfdir}/webalizer.conf
 install webalizer $RPM_BUILD_ROOT%{_bindir}
 install webalizer.1 $RPM_BUILD_ROOT%{_mandir}/man1
 install msfree.png $RPM_BUILD_ROOT%{_webdir}/icons
+install %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/webalizer
+install %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/cron.hourly/webalizer
+
+
 
 for lang in $(cd po && ls -1 *.mo); do
 	dir=$(echo "$lang" | sed -e 's#\.mo##g')
@@ -129,5 +135,7 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %verify(not size md5 mtime) %{_sysconfdir}/webalizer.conf
 %dir %{_sysconfdir}/%{name}
 %attr(755,root,root) %{_bindir}/webalizer
+%attr(755,root,root) %{_sysconfdir}/cron.hourly/webalizer
+%config(noreplace) %verify(not size md5 mtime) %{_sysconfdir}/sysconfig/webalizer
 %{_mandir}/man1/*
 %{_webdir}/icons/*
