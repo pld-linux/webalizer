@@ -1,15 +1,17 @@
+%define		ver	1.29
+%define		patchlvl 07
 Summary:	The Webalizer - A web server log file analysis thingie
 Summary(pl):	Webalizer - analizator logów serwera www
 Name:		webalizer
-Version:	1.22_03
+Version:	%{ver}_%{patchlvl}
 Release:	1
 URL:		http://www.mrunix.net/webalizer/
-Source:		ftp://ftp.mrunix.net/pub/webalizer/pre-release/%{name}-1.22-03-src.tar.bz2
+Source:		ftp://ftp.mrunix.net/pub/webalizer/pre-release/%{name}-%{ver}-%{patchlvl}-src.tar.bz2
 Vendor:		Bradford L. Barrett <brad@mrunix.net>
 Copyright:	GPL
 Group:		Networking/Utilities
 Group(pl):	Sieæ/U¿ytki
-Icon:		webalizer.gif
+#Icon:		webalizer.gif
 BuildRoot:	/tmp/%{name}-%{version}-root
 
 %description
@@ -26,9 +28,11 @@ Webalizer to program analizuj±cy logi serwera www i tworz±cy strony
 w formacie HTML zawieraj±ce statystyki u¿ycia tego¿ serwera www.
 
 %prep
-%setup -q -n %{name}-1.22-03
+%setup -q -n %{name}-%{ver}-%{patchlvl}
 
 %build
+%configure --with-gd 
+#--with-language=polish
 make CFLAGS="$RPM_OPT_FLAGS -fsigned-char"  
 
 %install
