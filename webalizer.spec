@@ -12,7 +12,7 @@ Summary(ru):	Программа анализа log-файла web/ftp/proxy-сервера
 Summary(uk):	Програма анал╕зу log-файлу web/ftp/proxy-сервера
 Name:		webalizer
 Version:	%{ver}_%{patchlvl}
-Release:	13
+Release:	13.1
 License:	GPL v2
 Group:		Networking/Utilities
 Source0:	ftp://ftp.mrunix.net/pub/webalizer/%{name}-%{ver}-%{patchlvl}-src.tar.bz2
@@ -21,6 +21,7 @@ Source1:	http://linux.gda.pl/pub/webalizer/%{name}_lang.polish
 # Source1-md5:	510bc595699373c4d7a8093a5ea10df3
 Source2:	%{name}.sysconfig
 Source3:	%{name}.cron
+Source4:	%{name}.crontab
 Patch0:		%{name}-debian-23.patch
 Patch1:		%{name}-nolibnsl.patch
 Patch2:		%{name}-conf.patch
@@ -118,7 +119,8 @@ install webalizer $RPM_BUILD_ROOT%{_bindir}
 install webalizer.1 $RPM_BUILD_ROOT%{_mandir}/man1
 install msfree.png $RPM_BUILD_ROOT%{_webdir}/icons
 install %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/webalizer
-install %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/cron.hourly/webalizer
+install %{SOURCE3} $RPM_BUILD_ROOT%{_bindir}/webalizer.cron
+install %{SOURCE4} $RPM_BUILD_ROOT%{_sysconfdir}/cron.d/webalizer
 
 for lang in $(cd po && ls -1 *.mo); do
 	dir=$(echo "$lang" | sed -e 's#\.mo##g')
@@ -135,9 +137,9 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %doc CHANGES *README* country-codes.txt
 %config(noreplace) %verify(not size md5 mtime) %{_sysconfdir}/webalizer.conf
-%dir %{_sysconfdir}/%{name}
-%attr(755,root,root) %{_bindir}/webalizer
-%attr(755,root,root) %{_sysconfdir}/cron.hourly/webalizer
+%attr(755,root,root) %config(noreplace) %verify(not size md5 mtime)%{_sysconfdir}/cron.d/webalizer
 %config(noreplace) %verify(not size md5 mtime) %{_sysconfdir}/sysconfig/webalizer
+%dir %{_sysconfdir}/%{name}
+%attr(755,root,root) %{_bindir}/webalizer*
 %{_mandir}/man1/*
 %{_webdir}/icons/*
