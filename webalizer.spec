@@ -3,15 +3,15 @@
 Summary:	The Webalizer - A web server log file analysis thingie
 Summary(pl):	Webalizer - analizator logów serwera www
 Name:		webalizer
-Version:        %{ver}_%{patchlvl}
-Release:        1
-Copyright:      GPL
-Group:          Networking/Utilities
-Group(pl):      Sieciowe/Narzêdzia
+Version:	%{ver}_%{patchlvl}
+Release:	1
+License:	GPL
+Group:		Networking/Utilities
+Group(pl):	Sieciowe/Narzêdzia
 Source:		ftp://ftp.mrunix.net/pub/webalizer/pre-release/%{name}-%{ver}-%{patchlvl}-src.tgz
 Patch:		webalizer-shared_gd.patch
 Icon:		webalizer.gif
-URL:            http://www.mrunix.net/webalizer/
+URL:		http://www.mrunix.net/webalizer/
 BuildRequires:	gd-devel >= 1.6.2
 BuildRequires:	libpng-devel
 BuildRequires:	zlib-devel
@@ -28,8 +28,8 @@ user agent (browser) and country (user agent and referrer are only
 available if your web server produces combined log format files).
 
 %description -l pl
-Webalizer to program analizuj±cy logi serwera www i tworz±cy strony
-w formacie HTML zawieraj±ce statystyki u¿ycia tego¿ serwera www.
+Webalizer to program analizuj±cy logi serwera www i tworz±cy strony w
+formacie HTML zawieraj±ce statystyki u¿ycia tego¿ serwera www.
 
 %prep
 %setup -q -n %{name}-%{ver}-%{patchlvl}
@@ -44,10 +44,10 @@ make CFLAGS="$RPM_OPT_FLAGS -fsigned-char"
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT{/etc,%{_bindir},%{_mandir}/man1} \
+install -d $RPM_BUILD_ROOT{%{_sysconfdir},%{_bindir},%{_mandir}/man1} \
 	$RPM_BUILD_ROOT/home/httpd/html/usage
 
-install sample.conf $RPM_BUILD_ROOT/etc/webalizer.conf
+install sample.conf $RPM_BUILD_ROOT%{_sysconfdir}/webalizer.conf
 install -s webalizer $RPM_BUILD_ROOT%{_bindir}
 install webalizer.1 $RPM_BUILD_ROOT%{_mandir}/man1/webalizer.1
 install msfree.png $RPM_BUILD_ROOT/home/httpd/html/usage
@@ -60,9 +60,8 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(644,root,root,755)
-%doc CHANGES.gz README.gz country-codes.txt.gz
-%attr(644,root,root) %config(noreplace) /etc/webalizer.conf
+%doc *.gz
+%config(noreplace) %{_sysconfdir}/webalizer.conf
 %attr(755,root,root) %{_bindir}/webalizer
-%attr(644,root,root) %{_mandir}/man1/webalizer.1.gz
-%attr(755,root,root) %dir /home/httpd/html/usage
-%attr(644,root,root) /home/httpd/html/usage/msfree.png
+%{_mandir}/man1/*
+/home/httpd/html/usage
