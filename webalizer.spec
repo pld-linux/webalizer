@@ -2,9 +2,9 @@ Summary:	The Webalizer - A web server log file analysis thingie
 Summary(pl):	Webalizer - analizator logów serwera www
 Name:		webalizer
 %define		ver	2.01
-%define		patchlvl 06
+%define		patchlvl 09
 Version:	%{ver}_%{patchlvl}
-Release:	5
+Release:	1
 License:	GPL
 Group:		Networking/Utilities
 Group(de):	Netzwerkwesen/Werkzeuge
@@ -12,7 +12,7 @@ Group(es):	Red/Utilitarios
 Group(pl):	Sieciowe/Narzêdzia
 Group(pt_BR):	Rede/Utilitários
 Source0:	ftp://ftp.mrunix.net/pub/webalizer/%{name}-%{ver}-%{patchlvl}-src.tar.bz2
-Patch0:		%{name}-%{ver}-%{patchlvl}-ipv6-20010902.patch
+Patch0:		%{name}-%{ver}-06-ipv6-20010902.patch
 Icon:		webalizer.gif
 URL:		http://www.mrunix.net/webalizer/
 BuildRequires:	gd-devel >= 2.0.1
