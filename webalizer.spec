@@ -45,7 +45,7 @@ CFLAGS="%{rpmcflags} -fsigned-char"
 	--with-gd \
 	--with-db \
 	--with-dblib \
-	--enable-dns 
+	--enable-dns
 #--with-language=polish
 %{__make}
 
