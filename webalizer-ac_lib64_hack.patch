@@ -1,0 +1,15 @@
+diff -Nura webalizer-2.01-10.bef/configure.in webalizer-2.01-10.aft/configure.in
+--- webalizer-2.01-10.bef/configure.in	2004-04-16 22:34:01.000000000 +0200
++++ webalizer-2.01-10.aft/configure.in	2004-04-17 12:51:05.000000000 +0200
+@@ -126,9 +126,9 @@
+ fi
+ 
+ if test "$HAVE_LIBGD" = ""; then
+- AC_FIND_PATH(GDLOC,libgd.a,"", ${PREFIX}/lib ${PREFIX}/lib/gd /usr/local/lib /usr/local/lib/gd /usr/local/gd /usr/local/include /usr/local/include/gd /usr/lib/gd /usr/lib /lib ./ ./gd ../gd ${EXTRA_GDLIB} ${EXTRA_GD})
++ AC_FIND_PATH(GDLOC,libgd.a,"", ${PREFIX}/lib ${PREFIX}/lib/gd /usr/local/lib /usr/local/lib/gd /usr/local/gd /usr/local/include /usr/local/include/gd /usr/lib/gd /usr/lib /lib ./ ./gd ../gd ${EXTRA_GDLIB} ${EXTRA_GD} ${PREFIX}/lib64 ${PREFIX}/lib64/gd)
+  if test "$GDLOC" = ""; then
+-   AC_FIND_PATH(GDLOC,libgd.so,"", ${PREFIX}/lib ${PREFIX}/lib/gd /usr/local/lib /usr/local/lib/gd /usr/local/gd /usr/local/include /usr/local/include/gd /usr/lib/gd /usr/lib /lib ./ ./gd ../gd ${EXTRA_GDLIB} ${EXTRA_GD})
++   AC_FIND_PATH(GDLOC,libgd.so,"", ${PREFIX}/lib ${PREFIX}/lib/gd /usr/local/lib /usr/local/lib/gd /usr/local/gd /usr/local/include /usr/local/include/gd /usr/lib/gd /usr/lib /lib ./ ./gd ../gd ${EXTRA_GDLIB} ${EXTRA_GD} ${PREFIX}/lib64 ${PREFIX}/lib64/gd)
+  fi
+  if test "$GDLOC" = ""; then
+   AC_MSG_ERROR(gd library not found... please install gd.)
