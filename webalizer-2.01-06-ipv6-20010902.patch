@@ -1,0 +1,253 @@
+diff -urN webalizer-2.01-06.org/README.IPv6 webalizer-2.01-06/README.IPv6
+--- webalizer-2.01-06.org/README.IPv6	Thu Jan  1 01:00:00 1970
++++ webalizer-2.01-06/README.IPv6	Sun Sep  2 18:42:04 2001
+@@ -0,0 +1,2 @@
++IPv6 port by Arkadiusz Mi¶kiewicz <misiek@pld.ORG.PL>
++for PLD GNU/Linux, Sun Sep 2 2001
+diff -urN webalizer-2.01-06.org/dns_resolv.c webalizer-2.01-06/dns_resolv.c
+--- webalizer-2.01-06.org/dns_resolv.c	Fri Sep 29 08:20:21 2000
++++ webalizer-2.01-06/dns_resolv.c	Sun Sep  2 18:23:25 2001
+@@ -61,6 +61,9 @@
+ #include <sys/types.h>
+ #endif
+ 
++/* ensure getaddrinfo/getnameinfo */
++#include <netdb.h>
++
+ /* some systems need this */
+ #ifdef HAVE_MATH_H
+ #include <math.h>
+@@ -266,9 +269,16 @@
+       strcpy(tmp_buf, buffer);            /* save buffer in case of error */
+       if(parse_record(buffer))            /* parse the record             */
+       {
+-         if((log_rec.addr.s_addr = inet_addr(log_rec.hostname)) != INADDR_NONE)
++	 struct addrinfo hints, *ares;
++	 memset(&hints, 0, sizeof(hints));
++	 hints.ai_family = AF_UNSPEC;
++	 hints.ai_socktype = SOCK_STREAM;
++	 hints.ai_flags = AI_NUMERICHOST;
++	 if (0 == getaddrinfo(log_rec.hostname, "0", &hints, &ares))
+          {
+             DBT q, r;
++	    memcpy(&log_rec.addr, ares->ai_addr, ares->ai_addrlen);
++	    freeaddrinfo(ares);
+             q.data = log_rec.hostname;
+             q.size = strlen(log_rec.hostname);
+ 		
+@@ -414,12 +424,10 @@
+          {
+             int size;
+ 
+-            struct hostent *res_ent;
+-
+             close(child[i].inpipe[0]);
+             close(child[i].outpipe[1]);
+ 
+-            /* get struct in_addr here */
++            /* get struct sockaddr_storage here */
+             while((size = read(child[i].outpipe[0], child_buf, MAXHOST)))
+             {
+                if(size < 0)
+@@ -429,34 +437,37 @@
+                }
+                else
+                {
++		  char hbuf[NI_MAXHOST];
++
+                   if(debug_mode)
+-                  printf("Child got work: %lx(%d)\n",
+-                          *((unsigned long *)child_buf), size);
++		  printf("Child got work: %lx(%d)\n",
++			 *(unsigned long *)((struct sockaddr *)child_buf)->sa_data, size);
+ 
+-                  if((res_ent = gethostbyaddr(child_buf, size, AF_INET)))
++		  if (0 == getnameinfo((struct sockaddr *)child_buf, sizeof(struct sockaddr_storage),
++				       hbuf, sizeof(hbuf), NULL, 0, NI_NAMEREQD))
+                   {
+                      /* must be at least 4 chars */
+-                     if (strlen(res_ent->h_name)>3)
++                     if (strlen(hbuf)>3)
+                      {
+                         if(debug_mode)
+-                           printf("Child got %s for %lx(%d), %d bytes\n",
+-                                   res_ent->h_name,
+-                                   *((unsigned long *)child_buf),
+-                                   size,strlen(res_ent->h_name));
++                           printf("Child got %s for %x(%d), %d bytes\n",
++                                   hbuf,
++				   *(unsigned long *)((struct sockaddr *)child_buf)->sa_data,
++                                   size,strlen(hbuf));
+ 
+-                        strcpy(child_buf, res_ent->h_name);
++                        strcpy(child_buf, hbuf);
+                         size = strlen(child_buf);
+                      }
+                      else
+                      {
+                         if (debug_mode)
+-                           printf("gethostbyaddr returned bad h_name!\n");
++                           printf("getnameinfo returned bad hbuf!\n");
+                      }
+                   }
+                   else
+                   {
+                      if(debug_mode)
+-                        printf("gethostbyaddr returned NULL! (%d)\n",h_errno);
++                        printf("getnameinfo didn't returned any usable information\n");
+                   }
+ 
+                   if (write(child[i].inpipe[1], child_buf, size) == -1)
+@@ -535,8 +546,8 @@
+ 
+                if(trav)  /* something to resolve */
+                {
+-                  if (write(child[i].outpipe[1], &(trav->addr.s_addr),
+-                     sizeof(trav->addr.s_addr)) != -1)
++                  if (write(child[i].outpipe[1], &trav->addr,
++                     sizeof(trav->addr)) != -1)
+                   {
+                      /* We will watch this child */
+                      child[i].cur    = trav;
+@@ -544,10 +555,9 @@
+                      max_fd = MAX(max_fd, child[i].inpipe[0]);
+ 
+                      if(debug_mode)
+-                        printf("Giving %s (%lx) to Child %d for resolving\n",
++                        printf("Giving %s (%x) to Child %d for resolving\n",
+                                 child[i].cur->string,
+-                                (unsigned long)child[i].cur->addr.s_addr, i);
+-
++			       *(unsigned long *)((struct sockaddr *)&child[i].cur->addr)->sa_data, i);
+                      trav = trav->llist;
+                   }
+                   else  /* write error */
+@@ -637,8 +647,8 @@
+                      default:
+                      {
+                         dns_buf[size] = '\0';
+-                        if(memcmp(dns_buf, &(child[i].cur->addr.s_addr),
+-                                    sizeof(child[i].cur->addr.s_addr)))
++                        if(memcmp(dns_buf, &(child[i].cur->addr),
++                                    sizeof(child[i].cur->addr)))
+                         {
+                            if(debug_mode)
+                               printf("Got a result (%d): %s -> %s\n",
+Binary files webalizer-2.01-06.org/dns_resolv.o and webalizer-2.01-06/dns_resolv.o differ
+Binary files webalizer-2.01-06.org/graphs.o and webalizer-2.01-06/graphs.o differ
+diff -urN webalizer-2.01-06.org/hashtab.c webalizer-2.01-06/hashtab.c
+--- webalizer-2.01-06.org/hashtab.c	Fri Sep 29 05:51:42 2000
++++ webalizer-2.01-06/hashtab.c	Sat Sep  1 21:36:50 2001
+@@ -976,7 +976,7 @@
+ /* PUT_DNODE - insert/update dns host node   */
+ /*********************************************/
+ 
+-int put_dnode(char *str, struct in_addr *addr, DNODEPTR *htab)
++int put_dnode(char *str, struct sockaddr_storage *addr, DNODEPTR *htab)
+ {
+    DNODEPTR cptr,nptr;
+ 
+@@ -988,8 +988,8 @@
+       /* not hashed */
+       if ( (nptr=new_dnode(str)) != NULL)
+       {
+-         if (addr) memcpy(&nptr->addr, addr, sizeof(struct in_addr));
+-            else   memset(&nptr->addr, 0, sizeof(struct in_addr));
++         if (addr) memcpy(&nptr->addr, addr, sizeof(struct sockaddr_storage));
++            else   memset(&nptr->addr, 0, sizeof(struct sockaddr_storage));
+          nptr->next = NULL;
+          htab[hash(str)] = nptr;
+       }
+@@ -1005,8 +1005,8 @@
+       /* not found... */
+       if ( (nptr = new_dnode(str)) != NULL)
+       {
+-         if (addr) memcpy(&nptr->addr, addr, sizeof(struct in_addr));
+-            else   memset(&nptr->addr, 0, sizeof(struct in_addr));
++         if (addr) memcpy(&nptr->addr, addr, sizeof(struct sockaddr_storage));
++            else   memset(&nptr->addr, 0, sizeof(struct sockaddr_storage));
+          nptr->next  = htab[hash(str)];
+          htab[hash(str)]=nptr;
+       }
+diff -urN webalizer-2.01-06.org/hashtab.h webalizer-2.01-06/hashtab.h
+--- webalizer-2.01-06.org/hashtab.h	Fri Sep 29 05:50:30 2000
++++ webalizer-2.01-06/hashtab.h	Sat Sep  1 21:42:08 2001
+@@ -18,7 +18,7 @@
+ 
+ #ifdef USE_DNS
+ struct dnode {  char *string;              /* DNS node hash table struct   */
+-              struct in_addr  addr;
++              struct sockaddr_storage  addr;
+               struct dnode    *llist;
+               struct dnode    *next; };
+ #endif
+@@ -87,7 +87,7 @@
+ extern int    put_snode(char *, u_long, SNODEPTR *);
+ 
+ #ifdef USE_DNS
+-extern int    put_dnode(char *, struct in_addr *, DNODEPTR *);
++extern int    put_dnode(char *, struct sockaddr_storage *, DNODEPTR *);
+ extern void   del_dlist(DNODEPTR *);
+ #endif
+ 
+Binary files webalizer-2.01-06.org/hashtab.o and webalizer-2.01-06/hashtab.o differ
+Binary files webalizer-2.01-06.org/linklist.o and webalizer-2.01-06/linklist.o differ
+Binary files webalizer-2.01-06.org/output.o and webalizer-2.01-06/output.o differ
+diff -urN webalizer-2.01-06.org/parser.c webalizer-2.01-06/parser.c
+--- webalizer-2.01-06.org/parser.c	Fri Sep 29 05:51:32 2000
++++ webalizer-2.01-06/parser.c	Sat Sep  1 21:34:27 2001
+@@ -114,7 +114,7 @@
+    log_rec.ident[0]=0;
+ */
+ #ifdef USE_DNS
+-   memset(&log_rec.addr,0,sizeof(struct in_addr));
++   memset(&log_rec.addr,0,sizeof(struct sockaddr_storage));
+ #endif
+ 
+    /* call appropriate handler */
+Binary files webalizer-2.01-06.org/parser.o and webalizer-2.01-06/parser.o differ
+Binary files webalizer-2.01-06.org/preserve.o and webalizer-2.01-06/preserve.o differ
+Binary files webalizer-2.01-06.org/webalizer and webalizer-2.01-06/webalizer differ
+diff -urN webalizer-2.01-06.org/webalizer.c webalizer-2.01-06/webalizer.c
+--- webalizer-2.01-06.org/webalizer.c	Tue Oct 17 06:15:53 2000
++++ webalizer-2.01-06/webalizer.c	Sun Sep  2 18:31:13 2001
+@@ -63,6 +63,7 @@
+ #ifdef USE_DNS
+ #include <netinet/in.h>
+ #include <arpa/inet.h>
++#include <netdb.h>
+ 
+ #ifdef HAVE_DB_185_H
+ #include <db_185.h>
+@@ -986,8 +987,15 @@
+          /* Resolve IP address if needed */
+          if (dns_db)
+          {
+-            if (inet_addr(log_rec.hostname) != INADDR_NONE)
+-            resolve_dns(&log_rec);
++	   struct addrinfo hints, *ares;
++	   memset(&hints, 0, sizeof(hints));
++	   hints.ai_family = AF_UNSPEC;
++	   hints.ai_socktype = SOCK_STREAM;
++	   hints.ai_flags = AI_NUMERICHOST;
++	   if (0 == getaddrinfo(log_rec.hostname, "0", &hints, &ares)) {
++	     freeaddrinfo(ares);
++	     resolve_dns(&log_rec);
++	   }
+          }
+ #endif
+ 
+diff -urN webalizer-2.01-06.org/webalizer.h webalizer-2.01-06/webalizer.h
+--- webalizer-2.01-06.org/webalizer.h	Tue Oct 17 06:15:53 2000
++++ webalizer-2.01-06/webalizer.h	Sat Sep  1 21:31:31 2001
+@@ -143,7 +143,7 @@
+                        int    resp_code;           /* response code        */
+                        u_long xfer_size;           /* xfer size in bytes   */
+ #ifdef USE_DNS
+-                       struct in_addr addr;        /* IP address structure */
++		       struct sockaddr_storage addr; /* IP address structure */
+ #endif  /* USE_DNS */
+                        char   refer[MAXREF];       /* referrer             */
+                        char   agent[MAXAGENT];     /* user agent (browser) */
+Binary files webalizer-2.01-06.org/webalizer.o and webalizer-2.01-06/webalizer.o differ
+Binary files webalizer-2.01-06.org/webazolver and webalizer-2.01-06/webazolver differ
