@@ -4,12 +4,13 @@ Name:		webalizer
 %define		ver	2.01
 %define		patchlvl 06
 Version:	%{ver}_%{patchlvl}
-Release:	3
+Release:	4
 License:	GPL
 Group:		Networking/Utilities
 Group(de):	Netzwerkwesen/Werkzeuge
 Group(pl):	Sieciowe/Narzêdzia
 Source0:	ftp://ftp.mrunix.net/pub/webalizer/%{name}-%{ver}-%{patchlvl}-src.tar.bz2
+Patch0:		webalizer-%{ver}-%{patchlvl}-ipv6-20010902.patch
 Icon:		webalizer.gif
 URL:		http://www.mrunix.net/webalizer/
 BuildRequires:	gd-devel >= 2.0.1
@@ -35,6 +36,7 @@ formacie HTML zawieraj±ce statystyki u¿ycia tego¿ serwera www.
 
 %prep
 %setup -q -n %{name}-%{ver}-%{patchlvl}
+%patch0 -p1
 
 %build
 aclocal
