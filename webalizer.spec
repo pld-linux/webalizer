@@ -1,6 +1,6 @@
 #
 # Conditional build:
-%bcond_without	db3	# build with db3 instead of db 4.x
+%bcond_with	db3	# build with db3 instead of db 4.x
 #
 %define		ver		2.01
 %define		patchlvl	10
