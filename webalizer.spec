@@ -12,7 +12,7 @@ Summary(ru):	Программа анализа log-файла web/ftp/proxy-сервера
 Summary(uk):	Програма анал╕зу log-файлу web/ftp/proxy-сервера
 Name:		webalizer
 Version:	%{ver}_%{patchlvl}
-Release:	10
+Release:	11
 License:	GPL v2
 Group:		Networking/Utilities
 Source0:	ftp://ftp.mrunix.net/pub/webalizer/%{name}-%{ver}-%{patchlvl}-src.tar.bz2
@@ -32,7 +32,7 @@ BuildRequires:	autoconf
 %{?with_db3:BuildRequires:	db3-devel}
 BuildRequires:	gd-devel >= 2.0.1
 BuildRequires:	gettext-devel
-BuildRequires:	libpng >= 1.0.8
+BuildRequires:	libpng-devel >= 1.0.8
 BuildRequires:	zlib-devel
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
@@ -91,7 +91,11 @@ Webalizer - це програма анал╕зу лог╕в web-сервера, що вида╓ статистику
 %patch2 -p1
 %patch3 -p1
 
-install %{SOURCE1} lang/
+mv -f po/{no,nb}.po
+mv -f po/{sr,sr@Latn}.po
+mv -f po/{zh,zh_TW}.po
+
+install %{SOURCE1} lang
 
 %build
 # don't call aclocal, aclocal.m4 contains only one _local_ macro
@@ -115,8 +119,6 @@ install webalizer.1 $RPM_BUILD_ROOT%{_mandir}/man1
 install msfree.png $RPM_BUILD_ROOT%{_webdir}/icons
 install %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/webalizer
 install %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/cron.hourly/webalizer
-
-
 
 for lang in $(cd po && ls -1 *.mo); do
 	dir=$(echo "$lang" | sed -e 's#\.mo##g')
