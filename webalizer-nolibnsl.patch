@@ -1,0 +1,10 @@
+--- webalizer-2.01-10/configure.in.orig	Fri Oct  6 09:51:49 2000
++++ webalizer-2.01-10/configure.in	Wed Feb 12 00:09:00 2003
+@@ -93,7 +93,6 @@
+     AC_CHECK_LIB(socket, main, LIBS="-lsocket ${LIBS}";)
+   fi
+   AC_CHECK_HEADERS(sys/socket.h)
+-  AC_CHECK_LIB(nsl, main, LIBS="-lnsl ${LIBS}")
+ fi
+ 
+ dnl Check for bsd 4.4 library -l44bsd:

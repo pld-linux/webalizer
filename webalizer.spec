@@ -1,3 +1,7 @@
+#
+# Conditional build:
+# _with_db3	- use db3 instead of db package
+#
 %define		ver		2.01
 %define		patchlvl	10
 Summary:	The Webalizer - A web server log file analysis thingie
@@ -13,11 +17,13 @@ License:	GPL v2
 Group:		Networking/Utilities
 Source0:	ftp://ftp.mrunix.net/pub/webalizer/%{name}-%{ver}-%{patchlvl}-src.tar.bz2
 Patch0:		%{name}-ipv6.patch
+Patch1:		%{name}-nolibnsl.patch
 Icon:		webalizer.gif
 URL:		http://www.mrunix.net/webalizer/
 BuildRequires:	autoconf
 BuildRequires:	automake
-BuildRequires:	db-devel
+%{!?_with_db3:BuildRequires:	db-devel}
+%{?_with_db3:BuildRequires:	db3-devel}
 BuildRequires:	gd-devel >= 2.0.1
 BuildRequires:	libpng >= 1.0.8
 BuildRequires:	zlib-devel
@@ -72,6 +78,7 @@ Webalizer - це програма анал╕зу лог╕в web-сервера, що вида╓ статистику
 %prep
 %setup -q -n %{name}-%{ver}-%{patchlvl}
 %patch0 -p1
+%patch1 -p1
 
 %build
 %{__aclocal}
