@@ -9,9 +9,10 @@ Copyright:      GPL
 Group:          Networking/Utilities
 Group(pl):      Sieciowe/Narzêdzia
 Source:		ftp://ftp.mrunix.net/pub/webalizer/pre-release/%{name}-%{ver}-%{patchlvl}-src.tar.bz2
+Patch:		webalizer-png.patch
 Icon:		webalizer.gif
 URL:            http://www.mrunix.net/webalizer/
-BuildRequires:	gd-devel >= 1.3
+BuildRequires:	gd-devel >= 1.6.2
 BuildRoot:	/tmp/%{name}-%{version}-root
 
 %description
@@ -29,9 +30,10 @@ w formacie HTML zawieraj±ce statystyki u¿ycia tego¿ serwera www.
 
 %prep
 %setup -q -n %{name}-%{ver}-%{patchlvl}
+%patch -p1
 
 %build
-%configure --with-gd 
+%configure --with-gd
 #--with-language=polish
 make CFLAGS="$RPM_OPT_FLAGS -fsigned-char"  
 
@@ -54,8 +56,8 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(644,root,root,755)
 %doc CHANGES.gz README.gz country-codes.txt.gz
-%config(noreplace) /etc/webalizer.conf
+%attr(644,root,root) %config(noreplace) /etc/webalizer.conf
 %attr(755,root,root) %{_bindir}/webalizer
-%{_mandir}/man1/webalizer.1.gz
-%dir /home/httpd/html/usage
-/home/httpd/html/usage/msfree.gif
+%attr(644,root,root) %{_mandir}/man1/webalizer.1.gz
+%attr(755,root,root) %dir /home/httpd/html/usage
+%attr(644,root,root) /home/httpd/html/usage/msfree.gif
