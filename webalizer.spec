@@ -87,7 +87,7 @@ CFLAGS="%{rpmcflags} -fsigned-char"
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT{%{_sysconfdir},%{_bindir},%{_mandir}/man1} \
+install -d $RPM_BUILD_ROOT{%{_sysconfdir}/%{name},%{_bindir},%{_mandir}/man1} \
 	$RPM_BUILD_ROOT/home/httpd/icons
 
 install sample.conf $RPM_BUILD_ROOT%{_sysconfdir}/webalizer.conf
@@ -102,6 +102,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %doc CHANGES *README* country-codes.txt
 %config(noreplace) %verify(not size md5 mtime) %{_sysconfdir}/webalizer.conf
+%dir %{_sysconfdir}/%{name}
 %attr(755,root,root) %{_bindir}/webalizer
 %{_mandir}/man1/*
 /home/httpd/icons/*
