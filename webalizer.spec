@@ -11,12 +11,14 @@ Summary(pt_BR):	Um software para anАlise de arquivos de log de servidores WWW
 Summary(ru):	Программа анализа log-файла web/ftp/proxy-сервера
 Summary(uk):	Програма анал╕зу log-файлу web/ftp/proxy-сервера
 Name:		webalizer
-Version:	%{ver}_%{patchlvl}%{!?lang_pl:pl}
+Version:	%{ver}_%{patchlvl}
 Release:	5
 License:	GPL v2
 Group:		Networking/Utilities
 Source0:	ftp://ftp.mrunix.net/pub/webalizer/%{name}-%{ver}-%{patchlvl}-src.tar.bz2
 # Source0-md5:	26d0a3c142423678daed2d6f579525d8
+Source1:	http://linux.gda.pl/pub/webalizer/%{name}_lang.polish
+# Source1-md5:	510bc595699373c4d7a8093a5ea10df3
 Patch0:		%{name}-debian-23.patch
 Patch1:		%{name}-nolibnsl.patch
 Icon:		webalizer.gif
@@ -80,6 +82,8 @@ Webalizer - це програма анал╕зу лог╕в web-сервера, що вида╓ статистику
 %setup -q -n %{name}-%{ver}-%{patchlvl}
 %patch0 -p1
 %patch1 -p1
+
+install %{SOURCE1} lang/
 
 %build
 # don't call aclocal, aclocal.m4 contains only one _local_ macro
