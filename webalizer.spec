@@ -1,5 +1,9 @@
 Summary:	The Webalizer - A web server log file analysis thingie
+Summary(es):	Software para anАlisis de archivos de log de servidores WWW.
 Summary(pl):	Webalizer - analizator logСw serwera www
+Summary(pt_BR):	Um software para anАlise de arquivos de log de servidores WWW
+Summary(ru):	Программа анализа log-файла web/ftp/proxy-сервера
+Summary(uk):	Програма анал╕зу log-файлу web/ftp/proxy-сервера
 Name:		webalizer
 %define		ver	2.01
 %define		patchlvl 10
@@ -29,6 +33,9 @@ site, URL, referrer, user agent (browser) and country (user agent and
 referrer are only available if your web server produces combined log
 format files).
 
+%description -l es
+Software para anАlisis de archivos de log de servidores WWW.
+
 %description -l pl
 Webalizer to program analizuj╠cy logi serwera www i tworz╠cy strony w
 formacie HTML zawieraj╠ce statystyki u©ycia tego© serwera www. Wyniki
@@ -40,6 +47,27 @@ odwoЁanie (czyli nagЁСwka Referer), przegl╠darki i kraju (przy czym
 statystyki w zale©no╤ci od przegl╠darki i nagЁСwka Referer s╠ dostЙpne
 tylko je╤li serwer loguje informacje o odwiedzinach w formacie
 "combined").
+
+%description -l pt_BR
+Um analisador de arquivos de log de servidores WWW.
+
+%description -l ru
+Webalizer - это программа анализа логов web-сервера, выдающая
+статистику в HTML формате, для просмотра броузером. Результаты
+представляются как в табличном, так и в графическом формате, что
+упрощает интерпретацию. Выдается статистика за год, месяц, день и
+почасовая, есть возможность показа статистики по адресу клиента, URL,
+ссылкам, браузеру и стране (браузер и ccылки доступны только, если
+сервер выдает логи в комбинированном формате).
+
+%description -l uk
+Webalizer - це програма анал╕зу лог╕в web-сервера, що вида╓ статистику
+в HTML формат╕, для перегляду броузером. Результати подаються як в
+табличному, так ╕ в граф╕чному формат╕, що полегшу╓ ╕нтерпретац╕ю.
+Вида╓ться статистика за р╕к, м╕сяць, день та погодинна, ╓ можлив╕сть
+показу статистики по адрес╕ кл╕╓нта, URL, посиланням, броузеру та
+кра╖н╕ (броузер та посилання доступн╕ лише якщо сервер пише логи в
+комб╕нованому формат╕).
 
 %prep
 %setup -q -n %{name}-%{ver}-%{patchlvl}
