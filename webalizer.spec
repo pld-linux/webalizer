@@ -1,3 +1,5 @@
+%define		ver		2.01
+%define		patchlvl	10
 Summary:	The Webalizer - A web server log file analysis thingie
 Summary(es):	Software para anАlisis de archivos de log de servidores WWW.
 Summary(pl):	Webalizer - analizator logСw serwera www
@@ -5,11 +7,9 @@ Summary(pt_BR):	Um software para anАlise de arquivos de log de servidores WWW
 Summary(ru):	Программа анализа log-файла web/ftp/proxy-сервера
 Summary(uk):	Програма анал╕зу log-файлу web/ftp/proxy-сервера
 Name:		webalizer
-%define		ver	2.01
-%define		patchlvl 10
 Version:	%{ver}_%{patchlvl}
-Release:	1
-License:	GPL
+Release:	2
+License:	GPL v2
 Group:		Networking/Utilities
 Source0:	ftp://ftp.mrunix.net/pub/webalizer/%{name}-%{ver}-%{patchlvl}-src.tar.bz2
 Patch0:		%{name}-ipv6.patch
@@ -95,14 +95,12 @@ install webalizer $RPM_BUILD_ROOT%{_bindir}
 install webalizer.1 $RPM_BUILD_ROOT%{_mandir}/man1
 install msfree.png $RPM_BUILD_ROOT/home/httpd/icons
 
-gzip -9nf CHANGES *README* country-codes.txt
-
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(644,root,root,755)
-%doc *.gz
+%doc CHANGES *README* country-codes.txt
 %config(noreplace) %verify(not size md5 mtime) %{_sysconfdir}/webalizer.conf
 %attr(755,root,root) %{_bindir}/webalizer
 %{_mandir}/man1/*
