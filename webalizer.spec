@@ -2,14 +2,13 @@ Summary:	The Webalizer - A web server log file analysis thingie
 Summary(pl):	Webalizer - analizator logów serwera www
 Name:		webalizer
 %define		ver	2.01
-%define		patchlvl 09
+%define		patchlvl 10
 Version:	%{ver}_%{patchlvl}
-Release:	2
+Release:	1
 License:	GPL
 Group:		Networking/Utilities
 Source0:	ftp://ftp.mrunix.net/pub/webalizer/%{name}-%{ver}-%{patchlvl}-src.tar.bz2
-Patch0:		%{name}-%{ver}-06-ipv6-20010902.patch
-Patch1:		%{name}-security.patch
+Patch0:		%{name}-ipv6.patch
 Icon:		webalizer.gif
 URL:		http://www.mrunix.net/webalizer/
 BuildRequires:	autoconf
@@ -32,12 +31,19 @@ format files).
 
 %description -l pl
 Webalizer to program analizuj±cy logi serwera www i tworz±cy strony w
-formacie HTML zawieraj±ce statystyki u¿ycia tego¿ serwera www.
+formacie HTML zawieraj±ce statystyki u¿ycia tego¿ serwera www. Wyniki
+s± prezentowane jednocze¶nie w formacie kolumnowym i graficznym, co
+u³atwia interpretacjê. Program prezentuje statystyki roczne,
+miesiêczne, dzienne i godzinowe, ma te¿ mo¿liwo¶æ wy¶wietlania
+statystyk w zale¿no¶ci od serwisu, URL-a, strony z której by³o
+odwo³anie (czyli nag³ówka Referer), przegl±darki i kraju (przy czym
+statystyki w zale¿no¶ci od przegl±darki i nag³ówka Referer s± dostêpne
+tylko je¶li serwer loguje informacje o odwiedzinach w formacie
+"combined").
 
 %prep
 %setup -q -n %{name}-%{ver}-%{patchlvl}
 %patch0 -p1
-%patch1 -p1
 
 %build
 aclocal
