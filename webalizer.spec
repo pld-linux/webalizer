@@ -96,7 +96,7 @@ install %{SOURCE1} lang/
 %{__autoconf}
 CFLAGS="%{rpmcflags} -fsigned-char"
 %configure \
-	--with-gd \
+	--with-gd=%{_libdir} \
 	--with-db \
 	--with-dblib \
 	--enable-dns
