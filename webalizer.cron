@@ -1,5 +1,6 @@
 #!/bin/sh
 
+WEBALIZER_OPTS=""
 [ -f /etc/sysconfig/webalizer ] && . /etc/sysconfig/webalizer
 umask 0022
 
@@ -8,18 +9,18 @@ if [ -n "$ENABLE" ] && [ "$ENABLE" = "YES" ]; then
 	export LANG
 	export LC_ALL
 	
+	if [ -n "$REALLY_QUIET" ] && [ "$REALLY_QUIET" = "YES" ]; then
+		WEBALIZER_OPTS="-Q"
+	elif [ -n "$QUIET" ] && [ "$QUIET" = "YES" ]; then
+		WEBALIZER_OPTS="-q"
+	fi
+	
 	if [ -f /etc/webalizer.conf ]; then
-		if [ -n "$QUIET" ] && [ "$QUIET" = "YES" ]; then
-			webalizer -q -c /etc/webalizer.conf
-		else
-			webalizer -c /etc/webalizer.conf
-		fi
+		webalizer ${WEBALIZER_OPTS} -c /etc/webalizer.conf
 	fi
 	if [ -n "$MULTIPLE" ] && [ "$MULTIPLE" = "YES" ]; then
-		if [ -n "$QUIET" ] && [ "$QUIET" = "YES" ]; then
-			for i in $(ls /etc/webalizer/*.conf 2>/dev/null); do webalizer -q -c $i; done
-		else
-			for i in $(ls /etc/webalizer/*.conf 2>/dev/null); do webalizer -c $i; done
-		fi
+		for i in $(ls /etc/webalizer/*.conf 2>/dev/null); do
+			webalizer ${WEBALIZER_OPTS} -c $i;
+		done
 	fi
 fi

@@ -12,3 +12,6 @@ MULTIPLE="YES"
 # Supress messages
 # QUIET="YES"
 
+# Don't display any messages
+#REALLY_QUIET="YES"
+
