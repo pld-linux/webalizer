@@ -23,7 +23,6 @@ Patch1:		%{name}-nolibnsl.patch
 Icon:		webalizer.gif
 URL:		http://www.mrunix.net/webalizer/
 BuildRequires:	autoconf
-BuildRequires:	automake
 %{!?with_db3:BuildRequires:	db-devel}
 %{?with_db3:BuildRequires:	db3-devel}
 BuildRequires:	gd-devel >= 2.0.1
@@ -83,7 +82,7 @@ Webalizer - це програма анал╕зу лог╕в web-сервера, що вида╓ статистику
 %patch1 -p1
 
 %build
-%{__aclocal}
+# don't call aclocal, aclocal.m4 contains only one _local_ macro
 %{__autoconf}
 CFLAGS="%{rpmcflags} -fsigned-char"
 %configure \
