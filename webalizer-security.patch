@@ -1,0 +1,12 @@
+--- webalizer-2.01-09/dns_resolv.c.orig	Wed Apr 17 10:08:42 2002
++++ webalizer-2.01-09/dns_resolv.c	Wed Apr 17 10:15:41 2002
+@@ -455,7 +455,8 @@
+ 				   *(unsigned long *)((struct sockaddr *)child_buf)->sa_data,
+                                    size,strlen(hbuf));
+ 
+-                        strcpy(child_buf, hbuf);
++			child_buf[MAXHOST-1]=0;
++                        strncpy(child_buf, hbuf, MAXHOST-1);
+                         size = strlen(child_buf);
+                      }
+                      else
