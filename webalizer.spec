@@ -43,7 +43,7 @@ autoconf
 	--with-gd \
 	--enable-dns 
 #--with-language=polish
-make CFLAGS="$RPM_OPT_FLAGS -fsigned-char"  
+%{__make} CFLAGS="$RPM_OPT_FLAGS -fsigned-char"  
 
 %install
 rm -rf $RPM_BUILD_ROOT
