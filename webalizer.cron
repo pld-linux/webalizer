@@ -1,13 +1,15 @@
 #!/bin/sh
+
 [ -f /etc/sysconfig/webalizer ] && . /etc/sysconfig/webalizer
 
-LC_LANG=$LANG
-export LANG
-export LC_LANG
-
-if [ -f /etc/webalizer.conf ]; then
-	webalizer -c /etc/webalizer.conf
+if [ -n "$ENABLE" ] && [ "$ENABLE" = "YES" ]; then
+	LC_LANG=$LANG
+	export LANG
+	export LC_LANG
+	
+	if [ -f /etc/webalizer.conf ]; then
+		webalizer -c /etc/webalizer.conf
+	fi
+	
+	for i in /etc/webalizer/*.conf; do webalizer -c $i; done
 fi
-
-for i in /etc/webalizer/*.conf; do webalizer -c $i; done
-

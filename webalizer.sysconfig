@@ -1,4 +1,7 @@
 # Customized setings for webalizer
 
+# Enable cron [YES|NO]
+ENABLE="YES"
+
 # Output language
 # LANG="pl_PL"
