@@ -88,12 +88,12 @@ CFLAGS="%{rpmcflags} -fsigned-char"
 %install
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT{%{_sysconfdir}/%{name},%{_bindir},%{_mandir}/man1} \
-	$RPM_BUILD_ROOT/home/httpd/icons
+	$RPM_BUILD_ROOT/home/services/httpd/icons
 
 install sample.conf $RPM_BUILD_ROOT%{_sysconfdir}/webalizer.conf
 install webalizer $RPM_BUILD_ROOT%{_bindir}
 install webalizer.1 $RPM_BUILD_ROOT%{_mandir}/man1
-install msfree.png $RPM_BUILD_ROOT/home/httpd/icons
+install msfree.png $RPM_BUILD_ROOT/home/services/httpd/icons
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -105,4 +105,4 @@ rm -rf $RPM_BUILD_ROOT
 %dir %{_sysconfdir}/%{name}
 %attr(755,root,root) %{_bindir}/webalizer
 %{_mandir}/man1/*
-/home/httpd/icons/*
+/home/services/httpd/icons/*
