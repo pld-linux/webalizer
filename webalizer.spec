@@ -39,7 +39,7 @@ formacie HTML zawieraj±ce statystyki u¿ycia tego¿ serwera www.
 %build
 aclocal
 autoconf
-CFLAGS="%{?debug:-O -g}%{!?debug:$RPM_OPT_FLAGS} -fsigned-char"
+CFLAGS="%{?debug:-O0 -g}%{!?debug:$RPM_OPT_FLAGS} -fsigned-char"
 %configure \
 	--with-gd \
 	--with-db \
