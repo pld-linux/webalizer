@@ -7,10 +7,6 @@ Version:	%{ver}_%{patchlvl}
 Release:	1
 License:	GPL
 Group:		Networking/Utilities
-Group(de):	Netzwerkwesen/Werkzeuge
-Group(es):	Red/Utilitarios
-Group(pl):	Sieciowe/Narzêdzia
-Group(pt_BR):	Rede/Utilitários
 Source0:	ftp://ftp.mrunix.net/pub/webalizer/%{name}-%{ver}-%{patchlvl}-src.tar.bz2
 Patch0:		%{name}-%{ver}-06-ipv6-20010902.patch
 Icon:		webalizer.gif
