@@ -149,7 +149,7 @@ done
 %defattr(644,root,root,755)
 %doc CHANGES *README* country-codes.txt
 %config(noreplace) %verify(not size md5 mtime) %{_sysconfdir}/webalizer.conf
-%attr(755,root,root) %config(noreplace) %verify(not size md5 mtime)%{_sysconfdir}/cron.d/webalizer
+%attr(640,root,root) %config(noreplace) %verify(not size md5 mtime)%{_sysconfdir}/cron.d/webalizer
 %config(noreplace) %verify(not size md5 mtime) %{_sysconfdir}/sysconfig/webalizer
 %attr(2755,root,stats) %dir %{_sysconfdir}/%{name}
 %attr(755,root,root) %{_bindir}/webalizer*
