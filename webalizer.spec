@@ -135,9 +135,9 @@ rm -rf $RPM_BUILD_ROOT
 
 %triggerpostun -- webalizer < 2.01_10-14
 echo "Upgrading from webalizer < 2.01_10-14"
-chgrp stats /etc/webalizer/*
-chmod g+r /etc/webalizer/*
-for dir in `grep ^OutputDir /etc/webalizer/*.conf | awk '{ print $2; };'`; do
+chgrp stats %{_sysconfdir}/webalizer/*
+chmod g+r %{_sysconfdir}/webalizer/*
+for dir in `grep ^OutputDir %{_sysconfdir}/webalizer/*.conf | awk '{ print $2; };'`; do
 	if [ -d $dir ]; then
 		chown -R stats $dir
 	else
@@ -148,9 +148,9 @@ done
 %files -f %{name}.lang
 %defattr(644,root,root,755)
 %doc CHANGES *README* country-codes.txt
-%config(noreplace) %verify(not size md5 mtime) %{_sysconfdir}/webalizer.conf
-%attr(640,root,root) %config(noreplace) %verify(not size md5 mtime)%{_sysconfdir}/cron.d/webalizer
-%config(noreplace) %verify(not size md5 mtime) %{_sysconfdir}/sysconfig/webalizer
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/webalizer.conf
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/cron.d/webalizer
+%config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/webalizer
 %attr(2755,root,stats) %dir %{_sysconfdir}/%{name}
 %attr(755,root,root) %{_bindir}/webalizer*
 %{_mandir}/man1/*
