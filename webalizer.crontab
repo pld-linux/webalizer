@@ -1,4 +1,0 @@
-#
-# cron job for the webalizer
-#
-05 * * * *	stats	/usr/bin/webalizer.cron
