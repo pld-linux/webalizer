@@ -12,7 +12,7 @@ Summary(ru):	Программа анализа log-файла web/ftp/proxy-сервера
 Summary(uk):	Програма анал╕зу log-файлу web/ftp/proxy-сервера
 Name:		webalizer
 Version:	%{ver}_%{patchlvl}
-Release:	15.1
+Release:	15.3
 License:	GPL v2
 Group:		Networking/Utilities
 Source0:	ftp://ftp.mrunix.net/pub/webalizer/%{name}-%{ver}-%{patchlvl}-src.tar.bz2
@@ -117,10 +117,12 @@ install -d $RPM_BUILD_ROOT{%{_sysconfdir}/%{name},%{_bindir},%{_sbindir},%{_mand
 install sample.conf $RPM_BUILD_ROOT%{_sysconfdir}/webalizer.conf
 install webalizer $RPM_BUILD_ROOT%{_bindir}
 install webalizer.1 $RPM_BUILD_ROOT%{_mandir}/man1
+echo '.so webalizer.1' > $RPM_BUILD_ROOT%{_mandir}/man1/webazolver.1
 install msfree.png $RPM_BUILD_ROOT%{_webdir}/icons
 install %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/webalizer
 install %{SOURCE3} $RPM_BUILD_ROOT%{_sbindir}/webalizer.cron
 install %{SOURCE4} $RPM_BUILD_ROOT%{_sysconfdir}/cron.d/webalizer
+ln -s webalizer $RPM_BUILD_ROOT%{_bindir}/webazolver
 
 for lang in $(cd po && ls -1 *.mo); do
 	dir=$(echo "$lang" | sed -e 's#\.mo##g')
@@ -153,6 +155,7 @@ done
 %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/webalizer
 %attr(2755,root,stats) %dir %{_sysconfdir}/%{name}
 %attr(755,root,root) %{_bindir}/webalizer
+%attr(755,root,root) %{_bindir}/webazolver
 %attr(755,root,root) %{_sbindir}/webalizer.cron
 %{_mandir}/man1/*
 %{_webdir}/icons/*
