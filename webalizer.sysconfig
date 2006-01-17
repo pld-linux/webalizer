@@ -1,17 +1,16 @@
-# Customized setings for webalizer
+# Customized settings for webalizer
 
-# Enable cron [YES|NO]
-ENABLE="YES"
+# Enable cron [yes|no]
+ENABLE="no"
 
 # Output language
 # LANG="pl_PL"
 
 # Allow multiple configs in /etc/webalizer/
-MULTIPLE="YES"
+MULTIPLE="yes"
 
 # Supress messages
-# QUIET="YES"
+# QUIET="yes"
 
 # Don't display any messages
-#REALLY_QUIET="YES"
-
+#REALLY_QUIET="yes"
