@@ -26,7 +26,6 @@ Patch0:		%{name}-debian-23.patch
 Patch1:		%{name}-nolibnsl.patch
 Patch2:		%{name}-conf.patch
 Patch3:		%{name}-debian_gcc2_fix.patch
-Icon:		webalizer.gif
 URL:		http://www.mrunix.net/webalizer/
 BuildRequires:	autoconf
 %{!?with_db3:BuildRequires:	db-devel}
