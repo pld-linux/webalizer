@@ -110,8 +110,8 @@ CFLAGS="%{rpmcflags} -fsigned-char"
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT{%{_sysconfdir}/%{name},%{_bindir},%{_sbindir},%{_mandir}/man1} \
-	$RPM_BUILD_ROOT{%{_webdir}/icons,%{_sysconfdir}/sysconfig,%{_sysconfdir}/cron.d}
+install -d $RPM_BUILD_ROOT{%{_bindir},%{_sbindir},%{_mandir}/man1} \
+	$RPM_BUILD_ROOT{%{_webdir}/icons,%{_sysconfdir}/{sysconfig,cron.d,%{name}}}
 
 install sample.conf $RPM_BUILD_ROOT%{_sysconfdir}/webalizer.conf
 install webalizer $RPM_BUILD_ROOT%{_bindir}
