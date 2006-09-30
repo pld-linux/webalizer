@@ -12,7 +12,7 @@ Summary(ru):	Программа анализа log-файла web/ftp/proxy-сервера
 Summary(uk):	Програма анал╕зу log-файлу web/ftp/proxy-сервера
 Name:		webalizer
 Version:	%{ver}_%{patchlvl}
-Release:	15
+Release:	16
 License:	GPL v2
 Group:		Networking/Utilities
 Source0:	ftp://ftp.mrunix.net/pub/webalizer/%{name}-%{ver}-%{patchlvl}-src.tar.bz2
@@ -26,6 +26,7 @@ Patch0:		%{name}-debian-23.patch
 Patch1:		%{name}-nolibnsl.patch
 Patch2:		%{name}-conf.patch
 Patch3:		%{name}-debian_gcc2_fix.patch
+Patch4:		%{name}-largefile.patch
 Icon:		webalizer.gif
 URL:		http://www.mrunix.net/webalizer/
 BuildRequires:	autoconf
@@ -91,6 +92,7 @@ Webalizer - це програма анал╕зу лог╕в web-сервера, що вида╓ статистику
 %patch1 -p1
 %patch2 -p1
 %patch3 -p1
+%patch4 -p1
 
 mv -f po/{no,nb}.po
 mv -f po/{sr,sr@Latn}.po
