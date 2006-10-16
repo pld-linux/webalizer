@@ -134,10 +134,10 @@ install %{SOURCE3} $RPM_BUILD_ROOT%{_sbindir}/webalizer.cron
 install %{SOURCE4} $RPM_BUILD_ROOT%{_sysconfdir}/cron.d/webalizer
 ln -s webalizer $RPM_BUILD_ROOT%{_bindir}/webazolver
 
-for lang in $(cd po && ls -1 *.mo); do
-	dir=$(echo "$lang" | sed -e 's#\.mo##g')
-	install -d $RPM_BUILD_ROOT%{_datadir}/locale/${dir}/LC_MESSAGES
-	install po/${lang} $RPM_BUILD_ROOT%{_datadir}/locale/${dir}/LC_MESSAGES/webalizer.mo
+for mo in po/*.mo; do
+	file=${mo#po/*}
+	lang=${file%*.mo}
+	install -D $mo $RPM_BUILD_ROOT%{_datadir}/locale/$lang/LC_MESSAGES/webalizer.mo
 done
 
 %find_lang %{name}
