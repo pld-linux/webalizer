@@ -1,0 +1,3 @@
+- moved /home/httpd/html/usage/* to /home/httpd/icons
+- use %rpmcflags
+- release 2
