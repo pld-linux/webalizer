@@ -1,3 +1,5 @@
+# TODO
+# - subpackage for cgi?
 #
 # Conditional build:
 %bcond_with	db3	# build with db3 instead of db 4.x
@@ -12,7 +14,7 @@ Summary(ru):	Программа анализа log-файла web/ftp/proxy-сервера
 Summary(uk):	Програма анал╕зу log-файлу web/ftp/proxy-сервера
 Name:		webalizer
 Version:	%{ver}_%{patchlvl}
-Release:	15.4
+Release:	16.5
 License:	GPL v2
 Group:		Networking/Utilities
 Source0:	ftp://ftp.mrunix.net/pub/webalizer/%{name}-%{ver}-%{patchlvl}-src.tar.bz2
@@ -85,6 +87,13 @@ Webalizer - це програма анал╕зу лог╕в web-сервера, що вида╓ статистику
 кра╖н╕ (броузер та посилання доступн╕ лише якщо сервер пише логи в
 комб╕нованому формат╕).
 
+%package cron
+Summary:	Webalizer cron process
+Group:		Networking/Utilities
+
+%description cron
+Webalizer cron process.
+
 %prep
 %setup -q -n %{name}-%{ver}-%{patchlvl}
 %patch0 -p1
@@ -136,7 +145,7 @@ done
 %clean
 rm -rf $RPM_BUILD_ROOT
 
-%triggerpostun -- webalizer < 2.01_10-14
+%triggerpostun cron -- webalizer < 2.01_10-14
 echo "Upgrading from webalizer < 2.01_10-14"
 chgrp stats %{_sysconfdir}/webalizer/*
 chmod g+r %{_sysconfdir}/webalizer/*
@@ -152,11 +161,14 @@ done
 %defattr(644,root,root,755)
 %doc CHANGES *README* country-codes.txt
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/webalizer.conf
-%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/cron.d/webalizer
-%config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/webalizer
-%attr(2755,root,stats) %dir %{_sysconfdir}/%{name}
 %attr(755,root,root) %{_bindir}/webalizer
 %attr(755,root,root) %{_bindir}/webazolver
-%attr(755,root,root) %{_sbindir}/webalizer.cron
 %{_mandir}/man1/*
 %{_webdir}/icons/*
+
+%files cron
+%defattr(644,root,root,755)
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/cron.d/webalizer
+%attr(2755,root,stats) %dir %{_sysconfdir}/%{name}
+%attr(755,root,root) %{_sbindir}/webalizer.cron
+%config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/webalizer
