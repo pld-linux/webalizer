@@ -89,10 +89,15 @@ Webalizer - це програма анал╕зу лог╕в web-сервера, що вида╓ статистику
 
 %package cron
 Summary:	Webalizer cron process
+Summary(pl):	Uruchamianie Webalizera jako zadania crona
 Group:		Networking/Utilities
+Requires:	%{name} = %{version}-%{release}
 
 %description cron
 Webalizer cron process.
+
+%description cron -l pl
+Uruchamianie Webalizera jako zadania crona.
 
 %prep
 %setup -q -n %{name}-%{ver}-%{patchlvl}
