@@ -1,5 +1,6 @@
 # TODO
 # - subpackage for cgi?
+# - think and fix the trigger.
 #
 # Conditional build:
 %bcond_with	db3	# build with db3 instead of db 4.x
@@ -14,7 +15,7 @@ Summary(ru):	Программа анализа log-файла web/ftp/proxy-сервера
 Summary(uk):	Програма анал╕зу log-файлу web/ftp/proxy-сервера
 Name:		webalizer
 Version:	%{ver}_%{patchlvl}
-Release:	16.5
+Release:	16.6
 License:	GPL v2
 Group:		Networking/Utilities
 Source0:	ftp://ftp.mrunix.net/pub/webalizer/%{name}-%{ver}-%{patchlvl}-src.tar.bz2
@@ -37,6 +38,7 @@ BuildRequires:	gd-devel >= 2.0.1
 BuildRequires:	gettext-devel
 BuildRequires:	libpng-devel >= 1.0.8
 BuildRequires:	zlib-devel
+Requires:	%{name}-base = %{version}-%{release}
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %define		_webdir		/home/services/httpd
@@ -87,17 +89,12 @@ Webalizer - це програма анал╕зу лог╕в web-сервера, що вида╓ статистику
 кра╖н╕ (броузер та посилання доступн╕ лише якщо сервер пише логи в
 комб╕нованому формат╕).
 
-%package cron
-Summary:	Webalizer cron process
-Summary(pl):	Uruchamianie Webalizera jako zadania crona
+%package base
+Summary:	Webalizer programs and manuals
 Group:		Networking/Utilities
-Requires:	%{name} = %{version}-%{release}
 
-%description cron
-Webalizer cron process.
-
-%description cron -l pl
-Uruchamianie Webalizera jako zadania crona.
+%description base
+Webalizer programs and manual pages.
 
 %prep
 %setup -q -n %{name}-%{ver}-%{patchlvl}
@@ -150,7 +147,7 @@ done
 %clean
 rm -rf $RPM_BUILD_ROOT
 
-%triggerpostun cron -- webalizer < 2.01_10-14
+%triggerpostun -- webalizer < 2.01_10-14
 echo "Upgrading from webalizer < 2.01_10-14"
 chgrp stats %{_sysconfdir}/webalizer/*
 chmod g+r %{_sysconfdir}/webalizer/*
@@ -164,16 +161,16 @@ done
 
 %files -f %{name}.lang
 %defattr(644,root,root,755)
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/cron.d/webalizer
+%attr(2755,root,stats) %dir %{_sysconfdir}/%{name}
+%attr(755,root,root) %{_sbindir}/webalizer.cron
+%config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/webalizer
+
+%files base
+%defattr(644,root,root,755)
 %doc CHANGES *README* country-codes.txt
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/webalizer.conf
 %attr(755,root,root) %{_bindir}/webalizer
 %attr(755,root,root) %{_bindir}/webazolver
 %{_mandir}/man1/*
 %{_webdir}/icons/*
-
-%files cron
-%defattr(644,root,root,755)
-%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/cron.d/webalizer
-%attr(2755,root,stats) %dir %{_sysconfdir}/%{name}
-%attr(755,root,root) %{_sbindir}/webalizer.cron
-%config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/webalizer
