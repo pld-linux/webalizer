@@ -1,5 +1,6 @@
 # TODO
 # - subpackage for cgi?
+# - move icons out of /home/services
 # - think and fix the trigger.
 #
 # Conditional build:
@@ -91,10 +92,14 @@ Webalizer - це програма анал╕зу лог╕в web-сервера, що вида╓ статистику
 
 %package base
 Summary:	Webalizer programs and manuals
+Summary(pl):	Webalizer i dokumentacja do niego
 Group:		Networking/Utilities
 
 %description base
 Webalizer programs and manual pages.
+
+%description base -l pl
+Webalizer i dokumentacja do niego.
 
 %prep
 %setup -q -n %{name}-%{ver}-%{patchlvl}
