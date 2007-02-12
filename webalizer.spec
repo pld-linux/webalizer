@@ -9,11 +9,11 @@
 %define		ver		2.01
 %define		patchlvl	10
 Summary:	The Webalizer - A web server log file analysis thingie
-Summary(es):	Software para anАlisis de archivos de log de servidores WWW
-Summary(pl):	Webalizer - analizator logСw serwera WWW
-Summary(pt_BR):	Um software para anАlise de arquivos de log de servidores WWW
-Summary(ru):	Программа анализа log-файла web/ftp/proxy-сервера
-Summary(uk):	Програма анал╕зу log-файлу web/ftp/proxy-сервера
+Summary(es.UTF-8):   Software para anц║lisis de archivos de log de servidores WWW
+Summary(pl.UTF-8):   Webalizer - analizator logцЁw serwera WWW
+Summary(pt_BR.UTF-8):   Um software para anц║lise de arquivos de log de servidores WWW
+Summary(ru.UTF-8):   п÷я─п╬пЁя─п╟п╪п╪п╟ п╟п╫п╟п╩п╦п╥п╟ log-я└п╟п╧п╩п╟ web/ftp/proxy-я│п╣я─п╡п╣я─п╟
+Summary(uk.UTF-8):   п÷я─п╬пЁя─п╟п╪п╟ п╟п╫п╟п╩я√п╥я┐ log-я└п╟п╧п╩я┐ web/ftp/proxy-я│п╣я─п╡п╣я─п╟
 Name:		webalizer
 Version:	%{ver}_%{patchlvl}
 Release:	17
@@ -54,51 +54,51 @@ site, URL, referrer, user agent (browser) and country (user agent and
 referrer are only available if your web server produces combined log
 format files).
 
-%description -l es
-Software para anАlisis de archivos de log de servidores WWW.
+%description -l es.UTF-8
+Software para anц║lisis de archivos de log de servidores WWW.
 
-%description -l pl
-Webalizer to program analizuj╠cy logi serwera WWW i tworz╠cy strony w
-formacie HTML zawieraj╠ce statystyki u©ycia tego© serwera WWW. Wyniki
-s╠ prezentowane jednocze╤nie w formacie kolumnowym i graficznym, co
-uЁatwia interpretacjЙ. Program prezentuje statystyki roczne,
-miesiЙczne, dzienne i godzinowe, ma te© mo©liwo╤Ф wy╤wietlania
-statystyk w zale©no╤ci od serwisu, URL-a, strony z ktСrej byЁo
-odwoЁanie (czyli nagЁСwka Referer), przegl╠darki i kraju (przy czym
-statystyki w zale©no╤ci od przegl╠darki i nagЁСwka Referer s╠ dostЙpne
-tylko je╤li serwer loguje informacje o odwiedzinach w formacie
+%description -l pl.UTF-8
+Webalizer to program analizujд┘cy logi serwera WWW i tworzд┘cy strony w
+formacie HTML zawierajд┘ce statystyki uе╪ycia tegoе╪ serwera WWW. Wyniki
+sд┘ prezentowane jednoczeе⌡nie w formacie kolumnowym i graficznym, co
+uе┌atwia interpretacjд≥. Program prezentuje statystyki roczne,
+miesiд≥czne, dzienne i godzinowe, ma teе╪ moе╪liwoе⌡д┤ wyе⌡wietlania
+statystyk w zaleе╪noе⌡ci od serwisu, URL-a, strony z ktцЁrej byе┌o
+odwoе┌anie (czyli nagе┌цЁwka Referer), przeglд┘darki i kraju (przy czym
+statystyki w zaleе╪noе⌡ci od przeglд┘darki i nagе┌цЁwka Referer sд┘ dostд≥pne
+tylko jeе⌡li serwer loguje informacje o odwiedzinach w formacie
 "combined").
 
-%description -l pt_BR
+%description -l pt_BR.UTF-8
 Um analisador de arquivos de log de servidores WWW.
 
-%description -l ru
-Webalizer - это программа анализа логов web-сервера, выдающая
-статистику в HTML формате, для просмотра броузером. Результаты
-представляются как в табличном, так и в графическом формате, что
-упрощает интерпретацию. Выдается статистика за год, месяц, день и
-почасовая, есть возможность показа статистики по адресу клиента, URL,
-ссылкам, браузеру и стране (браузер и ccылки доступны только, если
-сервер выдает логи в комбинированном формате).
+%description -l ru.UTF-8
+Webalizer - я█я┌п╬ п©я─п╬пЁя─п╟п╪п╪п╟ п╟п╫п╟п╩п╦п╥п╟ п╩п╬пЁп╬п╡ web-я│п╣я─п╡п╣я─п╟, п╡я▀п╢п╟я▌я┴п╟я▐
+я│я┌п╟я┌п╦я│я┌п╦п╨я┐ п╡ HTML я└п╬я─п╪п╟я┌п╣, п╢п╩я▐ п©я─п╬я│п╪п╬я┌я─п╟ п╠я─п╬я┐п╥п╣я─п╬п╪. п═п╣п╥я┐п╩я▄я┌п╟я┌я▀
+п©я─п╣п╢я│я┌п╟п╡п╩я▐я▌я┌я│я▐ п╨п╟п╨ п╡ я┌п╟п╠п╩п╦я┤п╫п╬п╪, я┌п╟п╨ п╦ п╡ пЁя─п╟я└п╦я┤п╣я│п╨п╬п╪ я└п╬я─п╪п╟я┌п╣, я┤я┌п╬
+я┐п©я─п╬я┴п╟п╣я┌ п╦п╫я┌п╣я─п©я─п╣я┌п╟я├п╦я▌. п▓я▀п╢п╟п╣я┌я│я▐ я│я┌п╟я┌п╦я│я┌п╦п╨п╟ п╥п╟ пЁп╬п╢, п╪п╣я│я▐я├, п╢п╣п╫я▄ п╦
+п©п╬я┤п╟я│п╬п╡п╟я▐, п╣я│я┌я▄ п╡п╬п╥п╪п╬п╤п╫п╬я│я┌я▄ п©п╬п╨п╟п╥п╟ я│я┌п╟я┌п╦я│я┌п╦п╨п╦ п©п╬ п╟п╢я─п╣я│я┐ п╨п╩п╦п╣п╫я┌п╟, URL,
+я│я│я▀п╩п╨п╟п╪, п╠я─п╟я┐п╥п╣я─я┐ п╦ я│я┌я─п╟п╫п╣ (п╠я─п╟я┐п╥п╣я─ п╦ ccя▀п╩п╨п╦ п╢п╬я│я┌я┐п©п╫я▀ я┌п╬п╩я▄п╨п╬, п╣я│п╩п╦
+я│п╣я─п╡п╣я─ п╡я▀п╢п╟п╣я┌ п╩п╬пЁп╦ п╡ п╨п╬п╪п╠п╦п╫п╦я─п╬п╡п╟п╫п╫п╬п╪ я└п╬я─п╪п╟я┌п╣).
 
-%description -l uk
-Webalizer - це програма анал╕зу лог╕в web-сервера, що вида╓ статистику
-в HTML формат╕, для перегляду броузером. Результати подаються як в
-табличному, так ╕ в граф╕чному формат╕, що полегшу╓ ╕нтерпретац╕ю.
-Вида╓ться статистика за р╕к, м╕сяць, день та погодинна, ╓ можлив╕сть
-показу статистики по адрес╕ кл╕╓нта, URL, посиланням, броузеру та
-кра╖н╕ (броузер та посилання доступн╕ лише якщо сервер пише логи в
-комб╕нованому формат╕).
+%description -l uk.UTF-8
+Webalizer - я├п╣ п©я─п╬пЁя─п╟п╪п╟ п╟п╫п╟п╩я√п╥я┐ п╩п╬пЁя√п╡ web-я│п╣я─п╡п╣я─п╟, я┴п╬ п╡п╦п╢п╟я■ я│я┌п╟я┌п╦я│я┌п╦п╨я┐
+п╡ HTML я└п╬я─п╪п╟я┌я√, п╢п╩я▐ п©п╣я─п╣пЁп╩я▐п╢я┐ п╠я─п╬я┐п╥п╣я─п╬п╪. п═п╣п╥я┐п╩я▄я┌п╟я┌п╦ п©п╬п╢п╟я▌я┌я▄я│я▐ я▐п╨ п╡
+я┌п╟п╠п╩п╦я┤п╫п╬п╪я┐, я┌п╟п╨ я√ п╡ пЁя─п╟я└я√я┤п╫п╬п╪я┐ я└п╬я─п╪п╟я┌я√, я┴п╬ п©п╬п╩п╣пЁя┬я┐я■ я√п╫я┌п╣я─п©я─п╣я┌п╟я├я√я▌.
+п▓п╦п╢п╟я■я┌я▄я│я▐ я│я┌п╟я┌п╦я│я┌п╦п╨п╟ п╥п╟ я─я√п╨, п╪я√я│я▐я├я▄, п╢п╣п╫я▄ я┌п╟ п©п╬пЁп╬п╢п╦п╫п╫п╟, я■ п╪п╬п╤п╩п╦п╡я√я│я┌я▄
+п©п╬п╨п╟п╥я┐ я│я┌п╟я┌п╦я│я┌п╦п╨п╦ п©п╬ п╟п╢я─п╣я│я√ п╨п╩я√я■п╫я┌п╟, URL, п©п╬я│п╦п╩п╟п╫п╫я▐п╪, п╠я─п╬я┐п╥п╣я─я┐ я┌п╟
+п╨я─п╟я≈п╫я√ (п╠я─п╬я┐п╥п╣я─ я┌п╟ п©п╬я│п╦п╩п╟п╫п╫я▐ п╢п╬я│я┌я┐п©п╫я√ п╩п╦я┬п╣ я▐п╨я┴п╬ я│п╣я─п╡п╣я─ п©п╦я┬п╣ п╩п╬пЁп╦ п╡
+п╨п╬п╪п╠я√п╫п╬п╡п╟п╫п╬п╪я┐ я└п╬я─п╪п╟я┌я√).
 
 %package base
 Summary:	Webalizer programs and manuals
-Summary(pl):	Webalizer i dokumentacja do niego
+Summary(pl.UTF-8):   Webalizer i dokumentacja do niego
 Group:		Networking/Utilities
 
 %description base
 Webalizer programs and manual pages.
 
-%description base -l pl
+%description base -l pl.UTF-8
 Webalizer i dokumentacja do niego.
 
 %prep
