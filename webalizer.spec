@@ -9,11 +9,11 @@
 %define		ver		2.01
 %define		patchlvl	10
 Summary:	The Webalizer - A web server log file analysis thingie
-Summary(es.UTF-8):   Software para análisis de archivos de log de servidores WWW
-Summary(pl.UTF-8):   Webalizer - analizator logów serwera WWW
-Summary(pt_BR.UTF-8):   Um software para análise de arquivos de log de servidores WWW
-Summary(ru.UTF-8):   Программа анализа log-файла web/ftp/proxy-сервера
-Summary(uk.UTF-8):   Програма аналізу log-файлу web/ftp/proxy-сервера
+Summary(es.UTF-8):	Software para análisis de archivos de log de servidores WWW
+Summary(pl.UTF-8):	Webalizer - analizator logów serwera WWW
+Summary(pt_BR.UTF-8):	Um software para análise de arquivos de log de servidores WWW
+Summary(ru.UTF-8):	Программа анализа log-файла web/ftp/proxy-сервера
+Summary(uk.UTF-8):	Програма аналізу log-файлу web/ftp/proxy-сервера
 Name:		webalizer
 Version:	%{ver}_%{patchlvl}
 Release:	17
@@ -92,7 +92,7 @@ Webalizer - це програма аналізу логів web-сервера, 
 
 %package base
 Summary:	Webalizer programs and manuals
-Summary(pl.UTF-8):   Webalizer i dokumentacja do niego
+Summary(pl.UTF-8):	Webalizer i dokumentacja do niego
 Group:		Networking/Utilities
 
 %description base
