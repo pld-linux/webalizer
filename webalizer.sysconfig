@@ -14,3 +14,6 @@ MULTIPLE="yes"
 
 # Don't display any messages
 #REALLY_QUIET="yes"
+
+# Force checking if webalizer is done with proper user rights
+FORCE_USER="stats"

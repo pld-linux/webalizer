@@ -4,6 +4,13 @@ WEBALIZER_OPTS=""
 [ -f /etc/sysconfig/webalizer ] && . /etc/sysconfig/webalizer
 umask 0022
 
+if [ -n "$FORCE_USER" ]; then
+	if [ "$FORCE_USER" != "`id -un`" ]; then
+		echo "Wrong current user. $FORCE_USER is required!"
+		exit 1
+	fi
+fi
+
 if [ -n "$ENABLE" ] && [ "$ENABLE" = "yes" -o "$ENABLE" = "YES" ]; then
 	LC_ALL=$LANG
 	export LANG
@@ -16,11 +23,11 @@ if [ -n "$ENABLE" ] && [ "$ENABLE" = "yes" -o "$ENABLE" = "YES" ]; then
 	fi
 	
 	if [ -f /etc/webalizer.conf ]; then
-		webalizer ${WEBALIZER_OPTS} -c /etc/webalizer.conf
+		webalizer ${WEBALIZER_OPTS} -c /etc/webalizer.conf || echo "webalizer -c /etc/webalizer.conf - unsuccesful!"
 	fi
 	if [ -n "$MULTIPLE" ] && [ "$MULTIPLE" = "yes" -o "$MULTIPLE" = "YES" ]; then
 		for i in $(ls /etc/webalizer/*.conf 2>/dev/null); do
-			webalizer ${WEBALIZER_OPTS} -c $i;
+			webalizer ${WEBALIZER_OPTS} -c $i || echo "webalizer -c $i - unsuccesful!"
 		done
 	fi
 fi
