@@ -7,7 +7,7 @@
 %bcond_with	db3	# build with db3 instead of db 4.x
 #
 %define		ver		2.01
-%define		patchlvl	11
+%define		patchlvl	10
 Summary:	The Webalizer - A web server log file analysis thingie
 Summary(es.UTF-8):	Software para análisis de archivos de log de servidores WWW
 Summary(pl.UTF-8):	Webalizer - analizator logów serwera WWW
@@ -16,7 +16,7 @@ Summary(ru.UTF-8):	Программа анализа log-файла web/ftp/prox
 Summary(uk.UTF-8):	Програма аналізу log-файлу web/ftp/proxy-сервера
 Name:		webalizer
 Version:	%{ver}_%{patchlvl}
-Release:	17
+Release:	18
 License:	GPL v2
 Group:		Networking/Utilities
 Source0:	ftp://ftp.mrunix.net/pub/webalizer/%{name}-%{ver}-%{patchlvl}-src.tar.bz2
