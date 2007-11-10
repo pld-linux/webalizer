@@ -16,7 +16,7 @@ Summary(ru.UTF-8):	Программа анализа log-файла web/ftp/prox
 Summary(uk.UTF-8):	Програма аналізу log-файлу web/ftp/proxy-сервера
 Name:		webalizer
 Version:	%{ver}_%{patchlvl}
-Release:	18
+Release:	19
 License:	GPL v2
 Group:		Networking/Utilities
 Source0:	ftp://ftp.mrunix.net/pub/webalizer/%{name}-%{ver}-%{patchlvl}-src.tar.bz2
@@ -40,6 +40,8 @@ BuildRequires:	gettext-devel
 BuildRequires:	libpng-devel >= 1.0.8
 BuildRequires:	zlib-devel
 Requires:	%{name}-base = %{version}-%{release}
+# sr@Latn vs. sr@latin
+Conflicts:	glibc-misc < 6:2.7
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %define		_webdir		/home/services/httpd
@@ -110,7 +112,7 @@ Webalizer i dokumentacja do niego.
 %patch4 -p1
 
 mv -f po/{no,nb}.po
-mv -f po/{sr,sr@Latn}.po
+mv -f po/{sr,sr@latin}.po
 mv -f po/{zh,zh_TW}.po
 
 install %{SOURCE1} lang
