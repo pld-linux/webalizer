@@ -1,0 +1,11 @@
+--- webalizer-2.21-02/webalizer.c~	2009-01-13 06:35:54.000000000 +0100
++++ webalizer-2.21-02/webalizer.c	2010-09-08 12:05:34.763439662 +0200
+@@ -28,7 +28,7 @@
+ /* Fix broken Zlib 64 bitness */
+ #if _FILE_OFFSET_BITS == 64
+ #ifndef _LARGEFILE64_SOURCE
+-#define _LARGEFILE64_SOURCE = 1
++#define _LARGEFILE64_SOURCE 1
+ #endif
+ #endif
+ 
