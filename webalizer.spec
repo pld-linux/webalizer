@@ -2,13 +2,12 @@
 # - subpackage for cgi?
 # - move icons out of /home/services
 # - think and fix the trigger.
-# - create workaround for language selection
 #
 # Conditional build:
 %bcond_with	db3	# build with db3 instead of db 4.x
 #
-%define		ver		2.21
-%define		patchlvl	02
+%define		ver		2.01
+%define		patchlvl	10
 Summary:	The Webalizer - A web server log file analysis thingie
 Summary(es.UTF-8):	Software para análisis de archivos de log de servidores WWW
 Summary(pl.UTF-8):	Webalizer - analizator logów serwera WWW
@@ -17,19 +16,21 @@ Summary(ru.UTF-8):	Программа анализа log-файла web/ftp/prox
 Summary(uk.UTF-8):	Програма аналізу log-файлу web/ftp/proxy-сервера
 Name:		webalizer
 Version:	%{ver}_%{patchlvl}
-Release:	1
+Release:	20
 License:	GPL v2
 Group:		Networking/Utilities
 Source0:	ftp://ftp.mrunix.net/pub/webalizer/%{name}-%{ver}-%{patchlvl}-src.tar.bz2
-# Source0-md5:	29af2558a5564493df654b6310b152e7
+# Source0-md5:	26d0a3c142423678daed2d6f579525d8
 Source1:	http://linux.gda.pl/pub/webalizer/%{name}_lang.polish
 # Source1-md5:	510bc595699373c4d7a8093a5ea10df3
 Source2:	%{name}.sysconfig
 Source3:	%{name}.cron
 Source4:	%{name}.crontab
-Patch0:		%{name}-nolibnsl.patch
-Patch1:		%{name}-conf.patch
-Patch2:		%{name}-gcc44.patch
+Patch0:		%{name}-debian-23.patch
+Patch1:		%{name}-nolibnsl.patch
+Patch2:		%{name}-conf.patch
+Patch3:		%{name}-debian_gcc2_fix.patch
+Patch4:		%{name}-largefile.patch
 URL:		http://www.mrunix.net/webalizer/
 BuildRequires:	autoconf
 %{!?with_db3:BuildRequires:	db-devel}
@@ -40,7 +41,7 @@ BuildRequires:	libpng-devel >= 1.0.8
 BuildRequires:	zlib-devel
 Requires:	%{name}-base = %{version}-%{release}
 # sr@Latn vs. sr@latin
-#Conflicts:	glibc-misc < 6:2.7
+Conflicts:	glibc-misc < 6:2.7
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %define		_webdir		/home/services/httpd
@@ -107,10 +108,12 @@ Webalizer i dokumentacja do niego.
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
+%patch3 -p1
+%patch4 -p1
 
-#mv -f po/{no,nb}.po
-#mv -f po/{sr,sr@latin}.po
-#mv -f po/{zh,zh_TW}.po
+mv -f po/{no,nb}.po
+mv -f po/{sr,sr@latin}.po
+mv -f po/{zh,zh_TW}.po
 
 install %{SOURCE1} lang
 
@@ -140,13 +143,13 @@ install %{SOURCE3} $RPM_BUILD_ROOT%{_sbindir}/webalizer.cron
 install %{SOURCE4} $RPM_BUILD_ROOT%{_sysconfdir}/cron.d/webalizer
 ln -s webalizer $RPM_BUILD_ROOT%{_bindir}/webazolver
 
-#for mo in po/*.mo; do
-#	file=${mo#po/*}
-#	lang=${file%*.mo}
-#	install -D $mo $RPM_BUILD_ROOT%{_datadir}/locale/$lang/LC_MESSAGES/webalizer.mo
-#done
+for mo in po/*.mo; do
+	file=${mo#po/*}
+	lang=${file%*.mo}
+	install -D $mo $RPM_BUILD_ROOT%{_datadir}/locale/$lang/LC_MESSAGES/webalizer.mo
+done
 
-#%%find_lang %{name}
+%find_lang %{name}
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -163,8 +166,7 @@ for dir in `grep ^OutputDir %{_sysconfdir}/webalizer/*.conf | awk '{ print $2; }
 	fi
 done
 
-#%%files -f %{name}.lang
-%files
+%files -f %{name}.lang
 %defattr(644,root,root,755)
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/cron.d/webalizer
 %attr(2755,root,stats) %dir %{_sysconfdir}/%{name}
@@ -178,6 +180,4 @@ done
 %attr(755,root,root) %{_bindir}/webalizer
 %attr(755,root,root) %{_bindir}/webazolver
 %{_mandir}/man1/*
-%dir %{_webdir}
-%dir %{_webdir}/icons
 %{_webdir}/icons/*
