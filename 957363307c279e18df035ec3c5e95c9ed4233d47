@@ -1,0 +1,5 @@
+- updated to 2.21-02
+- removed pateches: -debian-23.patch, -debian_gcc2_fix.patch, -largefile.patch
+- updated pateches: -nolibnsl.patch, conf.patch
+- added patch: -gcc44.patch
+- no international files (TODO)
