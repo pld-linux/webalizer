@@ -4,6 +4,9 @@
 # - think and fix the trigger.
 # - create workaround for language selection
 #
+# NOTE: since webalizer has compiled-in language support move this
+#       spec to DEVEL unless it's changed
+#
 # Conditional build:
 %bcond_with	db3	# build with db3 instead of db 4.x
 #
