@@ -1,9 +1,8 @@
-diff -ur webalizer-2.01-10/sample.conf webalizer-2.01-10.new/sample.conf
---- webalizer-2.01-10/sample.conf	2000-09-29 03:51:42.000000000 +0000
-+++ webalizer-2.01-10.new/sample.conf	2005-10-14 16:54:24.592572712 +0000
-@@ -25,7 +25,7 @@
- # the log filename ends in '.gz' (ie: a gzip compressed file), it will
- # be decompressed on the fly as it is being read.
+--- webalizer-2.21-02/sample.conf~	2009-01-13 05:46:19.000000000 +0100
++++ webalizer-2.21-02/sample.conf	2010-09-08 11:59:02.556144035 +0200
+@@ -26,7 +26,7 @@
+ # (bzip2 compressed file), it will be decompressed on the fly as it
+ # is being read.
  
 -#LogFile        /var/lib/httpd/logs/access_log
 +LogFile        /var/log/httpd/access_log
@@ -23,10 +22,10 @@ diff -ur webalizer-2.01-10/sample.conf webalizer-2.01-10.new/sample.conf
 +PageType	pl
 +PageType	shtml
  
- # UseHTTPS should be used if the analysis is being run on a
- # secure server, and links to urls should use 'https://' instead
-@@ -383,13 +385,16 @@
- #HideReferrer	mrunix.net/
+ # PagePrefix allows all requests with a specified prefix to be
+ # considered as 'pages'. If you want everything under /documents
+@@ -546,13 +548,16 @@
+ #HideReferrer	webalizer.org/
  
  # This one hides non-referrers ("-" Direct requests)
 -#HideReferrer	Direct Request
@@ -43,7 +42,7 @@ diff -ur webalizer-2.01-10/sample.conf webalizer-2.01-10.new/sample.conf
  HideURL		*.png
  HideURL		*.PNG
  HideURL		*.ra
-@@ -408,10 +413,22 @@
+@@ -571,10 +576,22 @@
  #GroupSite	*.aol.com
  #GroupSite	*.compuserve.com
  
@@ -60,7 +59,7 @@ diff -ur webalizer-2.01-10/sample.conf webalizer-2.01-10.new/sample.conf
 +GroupReferrer	netsprint.	NetSprint (netsprint.pl)
 +GroupReferrer	yandex.pl/	Yandex (yandex.pl)
 +GroupReferrer	szukacz.pl/	Szukacz (szukacz.pl)
-+GroupReferrer	yahoo.com/	Yahoo! (yahoo.com)
++GroupReferrer	yahoo.com/	Yahoo!
 +GroupReferrer	altavista.com/	AltaVista (altavista.com)
 +GroupReferrer	google.		Google (google.com)
 +GroupReferrer	dmoz.org/	Open Directory Project (dmoz.org)
@@ -70,35 +69,88 @@ diff -ur webalizer-2.01-10/sample.conf webalizer-2.01-10.new/sample.conf
  
  #GroupUser      root            Admin users
  #GroupUser      admin           Admin users
-@@ -421,11 +438,16 @@
+@@ -584,29 +601,35 @@
  # for browsers, and not display all the detail records.
  # (You should use MangleAgent to refine further...)
  
--#GroupAgent	MSIE		Micro$oft Internet Exploder
-+GroupAgent	MSIE		Micro$oft Internet Exploder
-+GroupAgent	Konqueror	Konqueror
-+GroupAgent	Lynx*		Lynx
-+GroupAgent	Links*		Links
-+GroupAgent	Opera		Opera
+-#GroupAgent	Opera/		Opera
++GroupAgent	Opera/		Opera
+ #HideAgent	Opera/
+-#GroupAgent	"MSIE 7"	Microsoft Internet Exploder 7
 +GroupAgent	w3m*		w3m
++#HideAgent	w3m*
 +GroupAgent	Mozilla		Netscape/Mozilla
- #HideAgent	MSIE
- #GroupAgent	Mozilla		Netscape
- #HideAgent	Mozilla
++#HideAgnet	Mozilla
++GroupAgent	"MSIE 7"	Microsoft Internet Exploder 7
+ #HideAgent	MSIE 7
+-#GroupAgent	"MSIE 6"	Microsoft Internet Exploder 6
++GroupAgent	"MSIE 6"	Microsoft Internet Exploder 6
+ #HideAgent	MSIE 6
+-#GroupAgent	"MSIE "		Older Microsoft Exploders
++GroupAgent	"MSIE "		Older Microsoft Exploders
+ #HideAgent	MSIE 
+-#GroupAgent	Firefox/2.	Firefox 2
++GroupAgent	Firefox/2.	Firefox 2
+ #HideAgent	Firefox/2.
+-#GroupAgent	Firefox/1.	Firefox 1.x
++GroupAgent	Firefox/1.	Firefox 1.x
+ #HideAgent	Firefox/1.
+-#GroupAgent	Konqueror	Konqueror
++GroupAgent	Konqueror	Konqueror
+ #HideAgent	Konqueror
+-#GroupAgent	Safari		Safari
++GroupAgent	Safari		Safari
+ #HideAgent	Safari
 -#GroupAgent	Lynx*		Lynx
++GroupAgent	Lynx*		Lynx
  #HideAgent	Lynx*
+-#GroupAgent	Wget/		WGet
++GroupAgent	Links*		Links
++#HideAgent	Links*
++GroupAgent	Wget/		WGet
+ #HideAgent	Wget/
+-#GroupAgent	(compatible;	Other Mozilla Compatibles
++GroupAgent	(compatible;	Other Mozilla Compatibles
+ #HideAgent	(compatible;
+-#GroupAgent	Mozilla*	Mozilla/Netscape
++GroupAgent	Mozilla*	Mozilla/Netscape
+ #HideAgent	Mozilla*
  
  # HideAllSites allows forcing individual sites to be hidden in the
-@@ -516,9 +538,9 @@
+@@ -699,21 +722,21 @@
  # engine, and the second is the URL variable used by that search engine
  # to define it's search terms.
  
--SearchEngine	yahoo.com	p=
--SearchEngine	altavista.com	q=
--SearchEngine	google.com	q=
-+SearchEngine	yahoo.		p=
-+SearchEngine	altavista.	q=
-+SearchEngine	google.		q=
- SearchEngine	eureka.com	q=
- SearchEngine	lycos.com	query=
- SearchEngine	hotbot.com	MT=
+-#SearchEngine	.google.   	q=
+-#SearchEngine	yahoo.com	p=
+-#SearchEngine	altavista.com	q=
+-#SearchEngine   aolsearch.      query=
+-#SearchEngine   ask.co          q=
+-#SearchEngine	eureka.com	q=
+-#SearchEngine	lycos.com	query=
+-#SearchEngine	hotbot.com	MT=
+-#SearchEngine	msn.com		q=
+-#SearchEngine	infoseek.com	qt=
+-#SearchEngine	excite		search=
+-#SearchEngine	netscape.com	query=
+-#SearchEngine	mamma.com	query=
+-#SearchEngine	alltheweb.com	q=
+-#SearchEngine	northernlight.com  qr=
++SearchEngine	.google.   	q=
++SearchEngine	yahoo.com	p=
++SearchEngine	altavista.com	q=
++SearchEngine   aolsearch.      query=
++SearchEngine   ask.co          q=
++SearchEngine	eureka.com	q=
++SearchEngine	lycos.com	query=
++SearchEngine	hotbot.com	MT=
++SearchEngine	msn.com		q=
++SearchEngine	infoseek.com	qt=
++SearchEngine	excite		search=
++SearchEngine	netscape.com	query=
++SearchEngine	mamma.com	query=
++SearchEngine	alltheweb.com	q=
++SearchEngine	northernlight.com  qr=
+ 
+ # Normally, search strings are converted to lower case in order to
+ # increase accuracy.  The SearchCaseI option allows them to maintain
