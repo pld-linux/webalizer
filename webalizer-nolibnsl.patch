@@ -1,10 +1,12 @@
---- webalizer-2.01-10/configure.in.orig	Fri Oct  6 09:51:49 2000
-+++ webalizer-2.01-10/configure.in	Wed Feb 12 00:09:00 2003
-@@ -93,7 +93,6 @@
-     AC_CHECK_LIB(socket, main, LIBS="-lsocket ${LIBS}";)
+--- webalizer-2.21-02/configure.in~	2009-01-13 05:45:04.000000000 +0100
++++ webalizer-2.21-02/configure.in	2010-09-08 11:08:29.743938206 +0200
+@@ -186,9 +186,6 @@
    fi
    AC_CHECK_HEADERS(sys/socket.h)
--  AC_CHECK_LIB(nsl, main, LIBS="-lnsl ${LIBS}")
+   AC_CHECK_FUNC(inet_pton,DUMMY="",DUMMY="")
+-  if test "$ac_cv_func_inet_pton" = "no"; then
+-    AC_CHECK_LIB(nsl,inet_pton, LIBS="-lnsl ${LIBS}")
+-  fi
  fi
  
- dnl Check for bsd 4.4 library -l44bsd:
+ dnl ------------------------------------------
