@@ -1,0 +1,12 @@
+diff -urN webalizer-2.01-10.org/configure.in webalizer-2.01-10/configure.in
+--- webalizer-2.01-10.org/configure.in	2000-10-06 09:51:49.000000000 +0200
++++ webalizer-2.01-10/configure.in	2006-09-30 13:37:27.457563000 +0200
+@@ -14,6 +14,8 @@
+ AC_PROG_INSTALL
+ AC_C_CHAR_UNSIGNED
+ 
++AC_SYS_LARGEFILE
++
+ dnl force our own CFLAGS defaults
+ if test "$GCC" = "yes"; then
+ 
