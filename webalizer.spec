@@ -10,8 +10,8 @@
 # Conditional build:
 %bcond_with	db3	# build with db3 instead of db 4.x
 #
-%define		ver		2.21
-%define		patchlvl	02
+%define		ver		2.23
+%define		patchlvl	03
 Summary:	The Webalizer - A web server log file analysis thingie
 Summary(es.UTF-8):	Software para análisis de archivos de log de servidores WWW
 Summary(pl.UTF-8):	Webalizer - analizator logów serwera WWW
@@ -24,7 +24,7 @@ Release:	1
 License:	GPL v2
 Group:		Networking/Utilities
 Source0:	ftp://ftp.mrunix.net/pub/webalizer/%{name}-%{ver}-%{patchlvl}-src.tar.bz2
-# Source0-md5:	29af2558a5564493df654b6310b152e7
+# Source0-md5:	7c67943867a33b7a56b7332af47d2b2a
 Source1:	http://linux.gda.pl/pub/webalizer/%{name}_lang.polish
 # Source1-md5:	510bc595699373c4d7a8093a5ea10df3
 Source2:	%{name}.sysconfig
@@ -32,7 +32,6 @@ Source3:	%{name}.cron
 Source4:	%{name}.crontab
 Patch0:		%{name}-nolibnsl.patch
 Patch1:		%{name}-conf.patch
-Patch2:		%{name}-gcc44.patch
 URL:		http://www.mrunix.net/webalizer/
 BuildRequires:	autoconf
 %{!?with_db3:BuildRequires:	db-devel}
@@ -109,7 +108,6 @@ Webalizer i dokumentacja do niego.
 %setup -q -n %{name}-%{ver}-%{patchlvl}
 %patch0 -p1
 %patch1 -p1
-%patch2 -p1
 
 #mv -f po/{no,nb}.po
 #mv -f po/{sr,sr@latin}.po
