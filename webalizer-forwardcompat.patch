@@ -1,0 +1,24 @@
+--- webalizer-2.01-10/preserve.c~	2001-10-24 08:22:42.000000000 +0200
++++ webalizer-2.01-10/preserve.c	2010-11-05 08:51:42.005261759 +0100
+@@ -82,7 +82,7 @@
+ 
+ void get_history()
+ {
+-   int i,numfields;
++   int i, j = 0,numfields;
+    FILE *hist_fp;
+    char buffer[BUFSIZE];
+ 
+@@ -101,8 +101,11 @@
+       if (verbose>1) printf("%s %s\n",msg_get_hist,hist_fname);
+       while ((fgets(buffer,BUFSIZE,hist_fp)) != NULL)
+       {
++         if (buffer[0]=='#') { continue; } /* skip comments */
++         j++;
++
+          i = atoi(buffer) -1;
+-         if (i>11)
++         if (i>11 || j > 12)
+          {
+             if (verbose)
+                fprintf(stderr,"%s (mth=%d)\n",msg_bad_hist,i+1);
