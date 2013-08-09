@@ -20,16 +20,27 @@ Summary(ru.UTF-8):	Программа анализа log-файла web/ftp/prox
 Summary(uk.UTF-8):	Програма аналізу log-файлу web/ftp/proxy-сервера
 Name:		webalizer
 Version:	%{ver}_%{patchlvl}
-Release:	1
+Release:	2
 License:	GPL v2
 Group:		Networking/Utilities
 Source0:	ftp://ftp.mrunix.net/pub/webalizer/%{name}-%{ver}-%{patchlvl}-src.tar.bz2
 # Source0-md5:	18cb592434dae81e9bdd8f55f5e28b96
-Source1:	http://linux.gda.pl/pub/webalizer/%{name}_lang.polish
-# Source1-md5:	510bc595699373c4d7a8093a5ea10df3
+
 Source2:	%{name}.sysconfig
 Source3:	%{name}.cron
 Source4:	%{name}.crontab
+#
+Patch100:	01_symlink_vulnerability.diff
+Patch101:	02_fix_a_spelling_error.diff
+Patch102:	05_apache_logio.diff
+Patch103:	06_apache_logio_optional.diff
+Patch104:	07_apache_logio_color_config.diff
+Patch105:	15_ignore_localhost.diff
+Patch106:	18_ttf_support_throught_libgd.diff
+Patch107:	23_gettext_first_part.diff
+Patch108:	24_gettext_generated.diff
+Patch109:	25_gettext_po_files.diff
+#
 Patch0:		%{name}-nolibnsl.patch
 Patch1:		%{name}-conf.patch
 URL:		http://www.mrunix.net/webalizer/
@@ -106,14 +117,23 @@ Webalizer i dokumentacja do niego.
 
 %prep
 %setup -q -n %{name}-%{ver}-%{patchlvl}
+%patch100 -p1
+%patch101 -p1
+%patch102 -p1
+%patch103 -p1
+%patch104 -p1
+%patch105 -p1
+%patch106 -p1
+%patch107 -p1
+%patch108 -p1
+%patch109 -p1
+
 %patch0 -p1
 %patch1 -p1
 
-#mv -f po/{no,nb}.po
-#mv -f po/{sr,sr@latin}.po
-#mv -f po/{zh,zh_TW}.po
-
-install %{SOURCE1} lang
+mv -f po/{no,nb}.po
+mv -f po/{sr,sr@latin}.po
+mv -f po/{zh,zh_TW}.po
 
 %build
 # don't call aclocal, aclocal.m4 contains only one _local_ macro
@@ -141,13 +161,13 @@ install %{SOURCE3} $RPM_BUILD_ROOT%{_sbindir}/webalizer.cron
 install %{SOURCE4} $RPM_BUILD_ROOT%{_sysconfdir}/cron.d/webalizer
 ln -s webalizer $RPM_BUILD_ROOT%{_bindir}/webazolver
 
-#for mo in po/*.mo; do
-#	file=${mo#po/*}
-#	lang=${file%*.mo}
-#	install -D $mo $RPM_BUILD_ROOT%{_datadir}/locale/$lang/LC_MESSAGES/webalizer.mo
-#done
+for mo in po/*.mo; do
+	file=${mo#po/*}
+	lang=${file%*.mo}
+	install -D $mo $RPM_BUILD_ROOT%{_datadir}/locale/$lang/LC_MESSAGES/webalizer.mo
+done
 
-#%%find_lang %{name}
+%find_lang %{name}
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -164,7 +184,6 @@ for dir in `grep ^OutputDir %{_sysconfdir}/webalizer/*.conf | awk '{ print $2; }
 	fi
 done
 
-#%%files -f %{name}.lang
 %files
 %defattr(644,root,root,755)
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/cron.d/webalizer
@@ -172,7 +191,7 @@ done
 %attr(755,root,root) %{_sbindir}/webalizer.cron
 %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/webalizer
 
-%files base
+%files base -f %{name}.lang
 %defattr(644,root,root,755)
 %doc CHANGES *README* country-codes.txt
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/webalizer.conf

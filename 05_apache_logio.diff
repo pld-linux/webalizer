@@ -1,0 +1,3109 @@
+From: Jose Carlos Medeiros <debian@psabs.com.br>
+Subject: Added logio support for new apache2 mod_logio logfiles
+
+Origin: http://www.rexursive.com/software/apache.html
+
+This is based on previous patch [1] already adapted from the original patch [2]
+to integrate with other patches in debian package.
+A fix for upstream patch [3] is integrated.
+The patch was ported to webalizer 2.21-02
+by Julien Viard de Galbert <julien@vdg.blogsite.org>
+And later adapted to webalizer 2.23-03 with the help
+from Pim van den Berg <pim@nethuis.nl>, Thanks !
+
+ 1: 05_apache_logio.dpatch by Jose Carlos Medeiros <debian@psabs.com.br>
+ 2: ftp://ftp.rexursive.com/pub/webalizer/webalizer-in-out.patch.gz
+ 3: ftp://ftp.rexursive.com/pub/webalizer/webalizer-in-out-fix.patch.gz
+
+Index: webalizer/README.FIRST
+===================================================================
+--- webalizer.orig/README.FIRST	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/README.FIRST	2011-04-18 23:56:44.000000000 +0200
+@@ -19,3 +19,12 @@
+ in the subject. Please do not send HTML formatted e-mails or e-mail
+ containing HTML tags as my mail server will reject them.  Thanks!
+ 
++###################  SUMMARY 05_apache_logio  ##########################
++
++##################
++# This Webalizer 2.01-10 patch intoduces necessary logic for presenting the
++# numbers collected by mod_logio in the reports. There are no special
++# configuration options required, just patch the Webalizer, configure it 
++# with the options you prefer, build it, install it and use it.
++##################
++
+Index: webalizer/graphs.c
+===================================================================
+--- webalizer.orig/graphs.c	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/graphs.c	2011-04-18 23:56:44.000000000 +0200
+@@ -51,6 +51,8 @@
+ #define FILECOLOR  file_or_blue            /* files               */
+ #define SITECOLOR  site_or_orange          /* sites               */
+ #define KBYTECOLOR kbyte_or_red            /* KBytes              */
++#define IKBYTECOLOR file_or_blue           /* In KBytes           */
++#define OKBYTECOLOR hit_or_green           /* Out KBytes          */
+ #define PAGECOLOR  page_or_cyan            /* Files               */
+ #define VISITCOLOR visit_or_yellow         /* Visits              */
+ 
+@@ -106,7 +108,7 @@
+ {
+ 
+    /* local variables */
+-   int i,j,x1,y1,x2;
++   int i,j,k,x1,y1,x2;
+    int s_mth,s_year=0;
+    float cw,cs,co,ci;
+ 
+@@ -139,10 +141,24 @@
+    {
+       /* Kbytes Legend */
+       i = (strlen(msg_h_xfer)*6);
+-      gdImageString(im,gdFontSmall,491-i,237,
++      j = (strlen(msg_h_ixfer)*6);
++      k = (strlen(msg_h_oxfer)*6);
++      gdImageString(im,gdFontSmall,491-i-j-k-24,237,
+                     (unsigned char *)msg_h_xfer,dkgrey);
+-      gdImageString(im,gdFontSmall,490-i,236,
++      gdImageString(im,gdFontSmall,490-i-j-k-24,236,
+                     (unsigned char *)msg_h_xfer,KBYTECOLOR);
++      gdImageString(im,gdFontSmall,491-k-j-21,237,"/",dkgrey);
++      gdImageString(im,gdFontSmall,490-k-j-21,236,"/",black);
++      gdImageString(im,gdFontSmall,491-k-j-12,237,
++                    (unsigned char *)msg_h_ixfer,dkgrey);
++      gdImageString(im,gdFontSmall,490-k-j-12,236,
++                    (unsigned char *)msg_h_ixfer,IKBYTECOLOR);
++      gdImageString(im,gdFontSmall,491-k-9,237,"/",dkgrey);
++      gdImageString(im,gdFontSmall,490-k-9,236,"/",black);
++      gdImageString(im,gdFontSmall,491-k,237,
++                    (unsigned char *)msg_h_oxfer,dkgrey);
++      gdImageString(im,gdFontSmall,490-k,236,
++                    (unsigned char *)msg_h_oxfer,OKBYTECOLOR);
+ 
+       /* Sites/Visits Legend */
+       i = (strlen(msg_h_visits)*6);
+@@ -303,28 +319,56 @@
+    }
+ 
+    fmaxval=0.0;
+-   for (i=s_mth; i<HISTSIZE; i++)
++   for (i=s_mth; i<HISTSIZE; i++){
+        if (data[i].xfer > fmaxval) fmaxval = data[i].xfer;
++       if (data[i].ixfer > fmaxval) fmaxval = data[i].ixfer;
++       if (data[i].oxfer > fmaxval) fmaxval = data[i].oxfer;
++   }
+    if (fmaxval <= 0.0) fmaxval = 1.0;
+    sprintf(maxvaltxt, "%.0f", fmaxval);
+    gdImageStringUp(im, gdFontSmall,493,130+(strlen(maxvaltxt)*6),
+                    (unsigned char *)maxvaltxt,black);
+ 
+-   cs = 180.0/graph_mths; cw = (cs/2)+(co/2);
+-   ci = 308+((cw-co)/2);
++   cs = 180.0/graph_mths; cw = (cs/2);
++   co = (36/graph_mths<1)?1:36/graph_mths;
++   ci = 308+((cw-2*co)/2);
+ 
+    /* xfer */
+    for (i=s_mth; i<HISTSIZE; i++)
+    {
+       percent = ((float)data[i].xfer / (float)fmaxval);
+       if (percent <= 0.0) continue;
+-      x1 = ci+ ((i-s_mth)*cs);
++      x1 = ci + ((i-s_mth)*cs);
+       x2 = x1 + cw;
+       y1 = 232 - (percent * 98);
+       gdImageFilledRectangle(im, x1, y1, x2, 232, KBYTECOLOR);
+       if (cw>2) gdImageRectangle(im, x1, y1, x2, 232, black);
+    }
+ 
++   /* ixfer */
++   for (i=s_mth; i<HISTSIZE; i++)
++   {
++      percent = ((float)data[i].ixfer / (float)fmaxval);
++      if (percent <= 0.0) continue;
++      x1 = ci + co + ((i-s_mth)*cs);
++      x2 = x1 + cw;
++      y1 = 232 - (percent * 98);
++      gdImageFilledRectangle(im, x1, y1, x2, 232, IKBYTECOLOR);
++      if (cw>2) gdImageRectangle(im, x1, y1, x2, 232, black);
++   }
++
++   /* oxfer */
++   for (i=s_mth; i<HISTSIZE; i++)
++   {
++      percent = ((float)data[i].oxfer / (float)fmaxval);
++      if (percent <= 0.0) continue;
++      x1 = ci + co + co + ((i-s_mth)*cs);
++      x2 = x1 + cw;
++      y1 = 232 - (percent * 98);
++      gdImageFilledRectangle(im, x1, y1, x2, 232, OKBYTECOLOR);
++      if (cw>2) gdImageRectangle(im, x1, y1, x2, 232, black);
++   }
++
+    /* stat the file */
+    if ( !(lstat(fname, &out_stat)) )
+    {
+@@ -365,8 +409,10 @@
+                  u_int64_t  data2[31],     /* data2 (files)      */
+                  u_int64_t  data3[31],     /* data3 (sites)      */
+                  double     data4[31],     /* data4 (kbytes)     */
+-                 u_int64_t  data5[31],     /* data5 (views)      */
+-                 u_int64_t  data6[31])     /* data6 (visits)     */
++                 double     data5[31],     /* data4 (kbytes)     */
++                 double     data6[31],     /* data4 (kbytes)     */
++                 u_int64_t  data7[31],     /* data5 (views)      */
++                 u_int64_t  data8[31])     /* data6 (visits)     */
+ {
+ 
+    /* local variables */
+@@ -415,7 +461,7 @@
+    {
+        if (data1[i] > maxval) maxval = data1[i];           /* get max val    */
+        if (data2[i] > maxval) maxval = data2[i];
+-       if (data5[i] > maxval) maxval = data5[i];
++       if (data7[i] > maxval) maxval = data7[i];
+    }
+    if (maxval <= 0) maxval = 1;
+    sprintf(maxvaltxt, "%llu", maxval);
+@@ -425,22 +471,36 @@
+    if (graph_legend)                           /* Print color coded legends? */
+    {
+       /* Kbytes Legend */
++      i=(strlen(msg_h_xfer)*6);
++      j=(strlen(msg_h_ixfer)*6);
+       gdImageStringUp(im,gdFontSmall,494,376,
+                       (unsigned char *)msg_h_xfer,dkgrey);
+       gdImageStringUp(im,gdFontSmall,493,375,
+                       (unsigned char *)msg_h_xfer,KBYTECOLOR);
++      gdImageStringUp(im,gdFontSmall,494,376-i-3,"/",dkgrey);
++      gdImageStringUp(im,gdFontSmall,493,375-i-3,"/",black);
++      gdImageStringUp(im,gdFontSmall,494,376-i-12,
++                      (unsigned char *)msg_h_ixfer,dkgrey);
++      gdImageStringUp(im,gdFontSmall,493,375-i-12,
++                      (unsigned char *)msg_h_ixfer,IKBYTECOLOR);
++      gdImageStringUp(im,gdFontSmall,494,376-i-j-15,"/",dkgrey);
++      gdImageStringUp(im,gdFontSmall,493,375-i-j-15,"/",black);
++      gdImageStringUp(im,gdFontSmall,494,376-i-j-24,
++                      (unsigned char *)msg_h_oxfer,dkgrey);
++      gdImageStringUp(im,gdFontSmall,493,375-i-j-24,
++                      (unsigned char *)msg_h_oxfer,OKBYTECOLOR);
+ 
+       /* Sites/Visits Legend */
+       i = (strlen(msg_h_sites)*6);
+-      gdImageStringUp(im,gdFontSmall,494,276,
++      gdImageStringUp(im,gdFontSmall,494,256,
+                       (unsigned char *)msg_h_sites,dkgrey);
+-      gdImageStringUp(im,gdFontSmall,493,275,
++      gdImageStringUp(im,gdFontSmall,493,255,
+                       (unsigned char *)msg_h_sites,SITECOLOR);
+-      gdImageStringUp(im,gdFontSmall,494,276-i-3,(unsigned char *)"/",dkgrey);
+-      gdImageStringUp(im,gdFontSmall,493,275-i-3,(unsigned char *)"/",black);
+-      gdImageStringUp(im,gdFontSmall,494,276-i-12,
++      gdImageStringUp(im,gdFontSmall,494,256-i-3,(unsigned char *)"/",dkgrey);
++      gdImageStringUp(im,gdFontSmall,493,255-i-3,(unsigned char *)"/",black);
++      gdImageStringUp(im,gdFontSmall,494,256-i-12,
+                       (unsigned char *)msg_h_visits,dkgrey);
+-      gdImageStringUp(im,gdFontSmall,493,275-i-12,
++      gdImageStringUp(im,gdFontSmall,493,255-i-12,
+                       (unsigned char *)msg_h_visits,VISITCOLOR);
+ 
+       /* Pages/Files/Hits Legend */
+@@ -489,11 +549,11 @@
+       gdImageRectangle(im, x1, y1, x2, 176, black);
+    }
+ 
+-   /* data5 */
++   /* data7 */
+    for (i=0; i<31; i++)
+    {
+-      if (data5[i]==0) continue;
+-      percent = ((float)data5[i] / (float)maxval);
++      if (data7[i]==0) continue;
++      percent = ((float)data7[i] / (float)maxval);
+       if (percent <= 0.0) continue;
+       x1 = 29 + (i*15);
+       x2 = x1 + 7;
+@@ -507,7 +567,7 @@
+    for (i=0; i<31; i++)
+    {
+       if (data3[i]>maxval) maxval = data3[i];
+-      if (data6[i]>maxval) maxval = data6[i];
++      if (data8[i]>maxval) maxval = data8[i];
+    }
+    if (maxval <= 0) maxval = 1;
+    sprintf(maxvaltxt, "%llu", maxval);
+@@ -517,7 +577,7 @@
+    /* data 6 */
+    for (i=0; i<31; i++)
+    {
+-      percent = ((float)data6[i] / (float)maxval);
++      percent = ((float)data8[i] / (float)maxval);
+       if (percent <= 0.0) continue;
+       x1 = 25 + (i*15);
+       x2 = x1 + 8;
+@@ -538,26 +598,55 @@
+       gdImageRectangle(im, x1, y1, x2, 276, black);
+    }
+ 
+-   /* data4 */
++   /* xfer */
+    fmaxval=0.0;
+-   for (i=0; i<31; i++)
++   for (i=0; i<31; i++){
+       if (data4[i]>fmaxval) fmaxval = data4[i];
++      if (data5[i]>fmaxval) fmaxval = data5[i];
++      if (data6[i]>fmaxval) fmaxval = data6[i];
++   }
+    if (fmaxval <= 0.0) fmaxval = 1.0;
+    sprintf(maxvaltxt, "%.0f", fmaxval/1024);
+    gdImageStringUp(im, gdFontSmall,8,280+(strlen(maxvaltxt)*6),
+                    (unsigned char *)maxvaltxt, black);
+    
++   /* data4 */
+    for (i=0; i<31; i++)
+    {
+       percent = data4[i] / fmaxval;
+       if (percent <= 0.0) continue;
+-      x1 = 26 + (i*15);
+-      x2 = x1 + 10;
++      x1 = 25 + (i*15);
++      x2 = x1 + 7;
+       y1 = 375 - ( percent * 91 );
+       gdImageFilledRectangle(im, x1, y1, x2, 375, KBYTECOLOR);
+       gdImageRectangle(im, x1, y1, x2, 375, black);
+    }
+ 
++   /* data5 */
++   for (i=0; i<31; i++)
++   {
++      percent = data5[i] / fmaxval;
++      if (percent <= 0.0) continue;
++      x1 = 27 + (i*15);
++      x2 = x1 + 7;
++      y1 = 375 - ( percent * 91 );
++      gdImageFilledRectangle(im, x1, y1, x2, 375, IKBYTECOLOR);
++      gdImageRectangle(im, x1, y1, x2, 375, black);
++   }
++
++   /* data6 */
++   for (i=0; i<31; i++)
++   {
++      percent = data6[i] / fmaxval;
++      if (percent <= 0.0) continue;
++      x1 = 29 + (i*15);
++      x2 = x1 + 7;
++      y1 = 375 - ( percent * 91 );
++      gdImageFilledRectangle(im, x1, y1, x2, 375, OKBYTECOLOR);
++      gdImageRectangle(im, x1, y1, x2, 375, black);
++   }
++
++
+    /* stat the file */
+    if ( !(lstat(fname, &out_stat)) )
+    {
+Index: webalizer/graphs.h
+===================================================================
+--- webalizer.orig/graphs.h	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/graphs.h	2011-04-18 23:56:44.000000000 +0200
+@@ -2,7 +2,8 @@
+ #define _GRAPHS_H
+ 
+ extern int  month_graph6(char *, char *, int, int, u_int64_t *,
+-             u_int64_t *, u_int64_t *, double *, u_int64_t *, u_int64_t *);
++             u_int64_t *, u_int64_t *, double *, double *, double *, u_int64_t *,
++             u_int64_t *);
+ extern int  year_graph6x(char *, char *, struct hist_rec *);
+ extern int  day_graph3(char *, char *, u_int64_t *, u_int64_t *, u_int64_t *);
+ extern int  pie_chart(char *, char *, u_int64_t, u_int64_t *, char **);
+Index: webalizer/hashtab.c
+===================================================================
+--- webalizer.orig/hashtab.c	2011-04-18 23:54:39.000000000 +0200
++++ webalizer/hashtab.c	2011-04-18 23:56:44.000000000 +0200
+@@ -155,6 +155,8 @@
+                u_int64_t count, /* hit count */
+                u_int64_t file,  /* File flag */
+                double    xfer,  /* xfer size */
++               double    ixfer, /* in xfer size */
++               double    oxfer, /* out xfer size */
+                u_int64_t *ctr,  /* counter   */
+                u_int64_t visit, /* visits    */
+                u_int64_t tstamp,/* timestamp */
+@@ -177,6 +179,8 @@
+          nptr->count = count;
+          nptr->files = file;
+          nptr->xfer  = xfer;
++         nptr->ixfer = ixfer;
++         nptr->oxfer = oxfer;
+          nptr->next  = NULL;
+          htab[hval] = nptr;
+          if (type!=OBJ_GRP) (*ctr)++;
+@@ -219,9 +223,11 @@
+             if ((type==cptr->flag)||((type!=OBJ_GRP)&&(cptr->flag!=OBJ_GRP)))
+             {
+                /* found... bump counter */
+-               cptr->count+=count;
+-               cptr->files+=file;
+-               cptr->xfer +=xfer;
++               cptr->count +=count;
++               cptr->files +=file;
++               cptr->xfer  +=xfer;
++               cptr->ixfer +=ixfer;
++               cptr->oxfer +=oxfer;
+ 
+                if (ispage(log_rec.url))
+                {
+@@ -253,6 +259,8 @@
+          nptr->count = count;
+          nptr->files = file;
+          nptr->xfer  = xfer;
++         nptr->ixfer = ixfer;
++         nptr->oxfer = oxfer;
+          nptr->next  = htab[hval];
+          htab[hval]=nptr;
+          if (type!=OBJ_GRP) (*ctr)++;
+@@ -361,6 +369,7 @@
+ /*********************************************/
+ 
+ int put_unode(char *str, int type, u_int64_t count, double xfer,
++              double ixfer, double oxfer,
+               u_int64_t *ctr, u_int64_t entry, u_int64_t exit, UNODEPTR *htab)
+ {
+    UNODEPTR cptr,nptr;
+@@ -378,6 +387,8 @@
+          nptr->flag = type;
+          nptr->count= count;
+          nptr->xfer = xfer;
++         nptr->ixfer= ixfer;
++         nptr->oxfer= oxfer;
+          nptr->next = NULL;
+          nptr->entry= entry;
+          nptr->exit = exit;
+@@ -395,8 +406,10 @@
+             if ((type==cptr->flag)||((type!=OBJ_GRP)&&(cptr->flag!=OBJ_GRP)))
+             {
+                /* found... bump counter */
+-               cptr->count+=count;
+-               cptr->xfer += xfer;
++               cptr->count +=count;
++               cptr->xfer  += xfer;
++               cptr->ixfer += ixfer;
++               cptr->oxfer += oxfer;
+                return 0;
+             }
+          }
+@@ -408,6 +421,8 @@
+          nptr->flag = type;
+          nptr->count= count;
+          nptr->xfer = xfer;
++         nptr->ixfer= ixfer;
++         nptr->oxfer= oxfer;
+          nptr->next = htab[hval];
+          nptr->entry= entry;
+          nptr->exit = exit;
+@@ -846,6 +861,8 @@
+                u_int64_t count, /* hit count */
+                u_int64_t file,  /* File flag */
+                double    xfer,  /* xfer size */
++               double    ixfer, /* in xfer size */
++               double    oxfer, /* out xfer size */
+                u_int64_t *ctr,  /* counter   */
+                u_int64_t visit, /* visits    */
+                u_int64_t tstamp,/* timestamp */
+@@ -867,6 +884,8 @@
+          nptr->count = count;
+          nptr->files = file;
+          nptr->xfer  = xfer;
++         nptr->ixfer = ixfer;
++         nptr->oxfer = oxfer;
+          nptr->next  = NULL;
+          htab[hval] = nptr;
+          if (type!=OBJ_GRP) (*ctr)++;
+@@ -893,9 +912,11 @@
+             if ((type==cptr->flag)||((type!=OBJ_GRP)&&(cptr->flag!=OBJ_GRP)))
+             {
+                /* found... bump counter */
+-               cptr->count+=count;
+-               cptr->files+=file;
+-               cptr->xfer +=xfer;
++               cptr->count +=count;
++               cptr->files +=file;
++               cptr->xfer  +=xfer;
++               cptr->ixfer +=ixfer;
++               cptr->oxfer +=oxfer;
+ 
+                if (ispage(log_rec.url))
+                {
+@@ -915,6 +936,8 @@
+          nptr->count = count;
+          nptr->files = file;
+          nptr->xfer  = xfer;
++         nptr->ixfer = ixfer;
++         nptr->oxfer = oxfer;
+          nptr->next  = htab[hval];
+          htab[hval]  = nptr;
+          if (type!=OBJ_GRP) (*ctr)++;
+Index: webalizer/hashtab.h
+===================================================================
+--- webalizer.orig/hashtab.h	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/hashtab.h	2011-04-18 23:56:44.000000000 +0200
+@@ -32,6 +32,8 @@
+            u_int64_t tstamp;
+                 char *lasturl;
+               double xfer;
++              double ixfer;
++              double oxfer;
+               struct hnode *next; };
+ 
+ struct unode {  char *string;              /* url hash table structure     */
+@@ -41,6 +43,8 @@
+            u_int64_t entry;                /* entry page counter           */
+            u_int64_t exit;                 /* exit page counter            */
+               double xfer;                 /* xfer size in bytes           */
++              double ixfer;                /* in xfer size in bytes        */
++              double oxfer;                /* out xfer size in bytes       */
+               struct unode *next; };       /* pointer to next node         */
+ 
+ struct rnode {  char *string;              /* referrer hash table struct   */
+@@ -64,6 +68,8 @@
+            u_int64_t visit;
+            u_int64_t tstamp;
+               double xfer;
++              double ixfer;
++              double oxfer;
+               struct inode *next; };
+ 
+ extern HNODEPTR sm_htab[MAXHASH];             /* hash tables               */
+@@ -77,11 +83,11 @@
+ extern DNODEPTR host_table[MAXHASH];          /* DNS resolver table        */
+ #endif
+ 
+-extern int    put_hnode(char *, int, u_int64_t, u_int64_t, double,
++extern int    put_hnode(char *, int, u_int64_t, u_int64_t, double, double, double,
+                         u_int64_t *, u_int64_t, u_int64_t, char *, HNODEPTR *);
+-extern int    put_unode(char *, int, u_int64_t, double, u_int64_t *,
++extern int    put_unode(char *, int, u_int64_t, double, double, double, u_int64_t *,
+                         u_int64_t, u_int64_t, UNODEPTR *);
+-extern int    put_inode(char *, int, u_int64_t, u_int64_t, double,
++extern int    put_inode(char *, int, u_int64_t, u_int64_t, double, double, double,
+                         u_int64_t *, u_int64_t, u_int64_t, INODEPTR *);
+ extern int    put_rnode(char *, int, u_int64_t, u_int64_t *, RNODEPTR *);
+ extern int    put_anode(char *, int, u_int64_t, u_int64_t *, ANODEPTR *);
+Index: webalizer/lang.h
+===================================================================
+--- webalizer.orig/lang.h	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/lang.h	2011-04-18 23:56:44.000000000 +0200
+@@ -108,6 +108,8 @@
+ extern char *msg_h_files ;
+ extern char *msg_h_sites ;
+ extern char *msg_h_xfer  ;
++extern char *msg_h_ixfer ;
++extern char *msg_h_oxfer ;
+ extern char *msg_h_hname ;
+ extern char *msg_h_url   ;
+ extern char *msg_h_agent ;
+@@ -132,6 +134,8 @@
+ extern char *msg_mtot_th ;
+ extern char *msg_mtot_tf ;
+ extern char *msg_mtot_tx ;
++extern char *msg_mtot_ix ;
++extern char *msg_mtot_ox ;
+ extern char *msg_mtot_us ;
+ extern char *msg_mtot_ur ;
+ extern char *msg_mtot_ua ;
+@@ -144,6 +148,8 @@
+ extern char *msg_mtot_msd;
+ extern char *msg_mtot_mvd;
+ extern char *msg_mtot_mkd;
++extern char *msg_mtot_ikd;
++extern char *msg_mtot_okd;
+ extern char *msg_mtot_rc ;
+ 
+ extern char *msg_dtot_ds ;
+Index: webalizer/lang/webalizer_lang.catalan
+===================================================================
+--- webalizer.orig/lang/webalizer_lang.catalan	2011-04-18 23:54:39.000000000 +0200
++++ webalizer/lang/webalizer_lang.catalan	2011-04-18 23:56:44.000000000 +0200
+@@ -224,7 +224,9 @@
+ char *msg_h_visits= "Visites";
+ char *msg_h_files = "Fitxers";
+ char *msg_h_sites = "Navegadors";
+-char *msg_h_xfer  = "KBytes";
++char *msg_h_xfer  = "kB F";
++char *msg_h_ixfer = "kB In";
++char *msg_h_oxfer = "kB Out";
+ char *msg_h_hname = "Visitant";
+ char *msg_h_url   = "URL";
+ char *msg_h_agent = "Navegador";
+@@ -251,6 +253,8 @@
+ char *msg_mtot_th = "Accessos totals";
+ char *msg_mtot_tf = "Fitxers totals";
+ char *msg_mtot_tx = "KBytes totals";
++char *msg_mtot_ix = "In KBytes totals";
++char *msg_mtot_ox = "Out KBytes totals";
+ char *msg_mtot_us = "Servidors totals";
+ char *msg_mtot_ur = "Referents totals";
+ char *msg_mtot_ua = "Navegadors totals";
+@@ -263,6 +267,8 @@
+ char *msg_mtot_msd= "Servidors per dia";
+ char *msg_mtot_mvd= "Visites per dia";
+ char *msg_mtot_mkd= "KBytes per dia";
++char *msg_mtot_ikd= "In KBytes per dia";
++char *msg_mtot_okd= "Out KBytes per dia";
+ char *msg_mtot_rc = "Accessos segons codi de resposta";
+ 
+ /* daily total table */
+Index: webalizer/lang/webalizer_lang.chinese
+===================================================================
+--- webalizer.orig/lang/webalizer_lang.chinese	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/lang/webalizer_lang.chinese	2011-04-18 23:56:44.000000000 +0200
+@@ -218,7 +218,9 @@
+ char *msg_h_visits= "Visits";
+ char *msg_h_files = "ÀÉ®×";
+ char *msg_h_sites = "ºô¯¸¼Æ";
+-char *msg_h_xfer  = "¶Ç°e¶q¡]KB¡^";
++char *msg_h_xfer  = "kB F";
++char *msg_h_ixfer = "kB In";
++char *msg_h_oxfer = "kB Out";
+ char *msg_h_hname = "¥D¾÷¦WºÙ";
+ char *msg_h_url   = "ºô­¶¸ô®|";
+ char *msg_h_agent = "ÂsÄý¾¹";
+@@ -245,6 +247,8 @@
+ char *msg_mtot_th = "Á`Åª¨ú¼Æ";
+ char *msg_mtot_tf = "Á`ÀÉ®×¼Æ";
+ char *msg_mtot_tx = "Á`¶Ç°e¶q¡]KB¡^";
++char *msg_mtot_ix = "Total kB In";
++char *msg_mtot_ox = "Total kB Out";
+ char *msg_mtot_us = "¨Ó·½ºô¯¸Á`¼Æ¡]¤£¥]§t­«ÂÐªÌ¡^";
+ char *msg_mtot_ur = "¨Ó·½ºô­¶Á`¼Æ¡]¤£¥]§t­«ÂÐªÌ¡^";
+ char *msg_mtot_ua = "¨Ó·½ÂsÄý¾¹Á`¼Æ¡]¤£¥]§t­«ÂÐªÌ¡^";
+@@ -256,7 +260,9 @@
+ char *msg_mtot_mpd= "Pages per Day";
+ char *msg_mtot_msd= "Sites per Day";
+ char *msg_mtot_mvd= "Visits per Day";
+-char *msg_mtot_mkd= "KBytes per Day";
++char *msg_mtot_mkd= "kB Files per Day";
++char *msg_mtot_ikd= "kB In per Day";
++char *msg_mtot_okd= "kB Out per Day";
+ char *msg_mtot_rc = "ºô­¶Åª¨ú®É¤§¦^À³¥N½X";
+ 
+ /* daily total table */
+Index: webalizer/lang/webalizer_lang.croatian
+===================================================================
+--- webalizer.orig/lang/webalizer_lang.croatian	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/lang/webalizer_lang.croatian	2011-04-18 23:56:44.000000000 +0200
+@@ -215,7 +215,9 @@
+ char *msg_h_visits= "Posjeta";
+ char *msg_h_files = "Datoteka";
+ char *msg_h_sites = "Kompjutera";
+-char *msg_h_xfer  = "KB";
++char *msg_h_xfer  = "kB D";
++char *msg_h_ixfer = "kB U";
++char *msg_h_oxfer = "kB Van";
+ char *msg_h_hname = "Kompjuter";
+ char *msg_h_url   = "URL";
+ char *msg_h_agent = "Korisnicki program";
+@@ -241,7 +243,9 @@
+ char *msg_mtot_ms = "Mjesecna statistika za";
+ char *msg_mtot_th = "Ukupno pristupa";
+ char *msg_mtot_tf = "Ukupno datoteka";
+-char *msg_mtot_tx = "Ukupno KBajta";
++char *msg_mtot_tx = "Ukupno kB datoteka";
++char *msg_mtot_ix = "Ukupno kB unutra";
++char *msg_mtot_ox = "Ukupno kB van";
+ char *msg_mtot_us = "Ukupno razlicitih kompjutera";
+ char *msg_mtot_ur = "Ukupno razlicitih referiranja";
+ char *msg_mtot_ua = "Ukupno razlicitih browsera";
+@@ -253,7 +257,9 @@
+ char *msg_mtot_mpd= "Datoteka na sat";
+ char *msg_mtot_msd= "Kompjutera na dan";
+ char *msg_mtot_mvd= "Posjeta na dan";
+-char *msg_mtot_mkd= "KBajta na dan";
++char *msg_mtot_mkd= "kB Datatoka na dan";
++char *msg_mtot_ikd= "kB Unutra na dan";
++char *msg_mtot_okd= "kB Van na dan";
+ char *msg_mtot_rc = "Pristupa po kodu";
+ 
+ /* daily total table */
+Index: webalizer/lang/webalizer_lang.czech
+===================================================================
+--- webalizer.orig/lang/webalizer_lang.czech	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/lang/webalizer_lang.czech	2011-04-18 23:56:44.000000000 +0200
+@@ -226,7 +226,9 @@
+ char *msg_h_visits= "Náv¹tìv";
+ char *msg_h_files = "Souborù";
+ char *msg_h_sites = "Míst";
+-char *msg_h_xfer  = "KBytù";
++char *msg_h_xfer  = "kB S";
++char *msg_h_oxfer = "kB In";
++char *msg_h_ixfer = "kB Out";
+ char *msg_h_hname = "Poèítaè";
+ char *msg_h_url   = "URL";
+ char *msg_h_agent = "Prohlí¾eè";
+@@ -252,7 +254,9 @@
+ char *msg_mtot_ms = "Mìsíèní statistiky za";
+ char *msg_mtot_th = "Celkem náv¹tìv";
+ char *msg_mtot_tf = "Celkem souborù";
+-char *msg_mtot_tx = "Celkem KBytù";
++char *msg_mtot_tx = "Celkem kB souborù";
++char *msg_mtot_ix = "Celkem kB In";
++char *msg_mtot_ox = "Celkem kB Out";
+ char *msg_mtot_us = "Celkem jedineèných míst";
+ char *msg_mtot_ur = "Celkem jedineèných odkazovaèù";
+ char *msg_mtot_ua = "Celkem jedineèných Prohlí¾eèù";
+@@ -265,6 +269,8 @@
+ char *msg_mtot_msd= "Míst za den";
+ char *msg_mtot_mvd= "Náv¹tìv za den";
+ char *msg_mtot_mkd= "KBytù za den";
++char *msg_mtot_ikd= "kBytù In za den";
++char *msg_mtot_okd= "kBytù Out za den";
+ char *msg_mtot_rc = "Náv¹tìvy podle kódu odpovìdi";
+ 
+ /* daily total table */
+Index: webalizer/lang/webalizer_lang.danish
+===================================================================
+--- webalizer.orig/lang/webalizer_lang.danish	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/lang/webalizer_lang.danish	2011-04-18 23:56:44.000000000 +0200
+@@ -218,7 +218,9 @@
+ char *msg_h_visits= "Besøg";
+ char *msg_h_files = "Filer";
+ char *msg_h_sites = "Gæster";
+-char *msg_h_xfer  = "kB";
++char *msg_h_xfer  = "kB F";
++char *msg_h_ixfer = "kB In";
++char *msg_h_oxfer = "kB Out";
+ char *msg_h_hname = "Navn/IP-adresse";
+ char *msg_h_url   = "URL";
+ char *msg_h_agent = "Browser";
+@@ -244,7 +246,9 @@
+ char *msg_mtot_ms = "Månedlig statistik for";
+ char *msg_mtot_th = "Forespørgsler";
+ char *msg_mtot_tf = "Filer";
+-char *msg_mtot_tx = "kB";
++char *msg_mtot_tx = "kB Filer";
++char *msg_mtot_ix = "kB In";
++char *msg_mtot_ox = "kB Out";
+ char *msg_mtot_us = "Unikke gæster";
+ char *msg_mtot_ur = "Unikke henvisende sider";
+ char *msg_mtot_ua = "Unikke browsere";
+@@ -256,7 +260,9 @@
+ char *msg_mtot_mpd= "Sider pr. dag";
+ char *msg_mtot_msd= "Gæster pr. dag";
+ char *msg_mtot_mvd= "Besøg pr. dag";
+-char *msg_mtot_mkd= "kB pr. dag";
++char *msg_mtot_mkd= "kB Filer pr. dag";
++char *msg_mtot_ikd= "kB Out pr. dag";
++char *msg_mtot_okd= "kB In pr. dag";
+ char *msg_mtot_rc = "Forespørgsler fordelt på svarkoder";
+ 
+ /* daily total table */
+Index: webalizer/lang/webalizer_lang.dutch
+===================================================================
+--- webalizer.orig/lang/webalizer_lang.dutch	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/lang/webalizer_lang.dutch	2011-04-18 23:56:44.000000000 +0200
+@@ -234,7 +234,9 @@
+ char *msg_h_visits= "Bezoeken";
+ char *msg_h_files = "Bestanden";
+ char *msg_h_sites = "Hosts";
+-char *msg_h_xfer  = "kB"; /* afgekort i.v.m. onderschrift grafiek */
++char *msg_h_xfer  = "kB B"; /* afgekort i.v.m. onderschrift grafiek */
++char *msg_h_ixfer = "kB In";
++char *msg_h_oxfer = "kB Out";
+ char *msg_h_hname = "Host(naam)";
+ char *msg_h_url   = "URL";
+ char *msg_h_agent = "Browser";
+@@ -260,7 +262,9 @@
+ char *msg_mtot_ms = "Maandoverzicht -";
+ char *msg_mtot_th = "Totaal hits";
+ char *msg_mtot_tf = "Totaal bestanden";
+-char *msg_mtot_tx = "Totaal kilobytes";
++char *msg_mtot_tx = "Totaal kB bestanden";
++char *msg_mtot_ix = "Totaal kB In";
++char *msg_mtot_ox = "Totaal kB Out";
+ char *msg_mtot_us = "Totaal verschillende hosts";
+ char *msg_mtot_ur = "Totaal verschillende verwijzers";
+ char *msg_mtot_ua = "Totaal verschillende browsers";
+@@ -272,7 +276,9 @@
+ char *msg_mtot_mpd= "Pagina's per dag";
+ char *msg_mtot_msd= "Hosts per dag";
+ char *msg_mtot_mvd= "Bezoeken per dag";
+-char *msg_mtot_mkd= "Kilobytes per dag";
++char *msg_mtot_mkd= "kB Bestanden per dag";
++char *msg_mtot_ikd= "kB In per dag";
++char *msg_mtot_okd= "kB Out per dag";
+ char *msg_mtot_rc = "Hits per 'Response Code'";
+ 
+ /* daily total table */
+Index: webalizer/lang/webalizer_lang.english
+===================================================================
+--- webalizer.orig/lang/webalizer_lang.english	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/lang/webalizer_lang.english	2011-04-18 23:56:44.000000000 +0200
+@@ -219,7 +219,9 @@
+ char *msg_h_visits= "Visits";
+ char *msg_h_files = "Files";
+ char *msg_h_sites = "Sites";
+-char *msg_h_xfer  = "KBytes";
++char *msg_h_xfer  = "kB F";
++char *msg_h_ixfer = "kB In";
++char *msg_h_oxfer = "kB Out";
+ char *msg_h_hname = "Hostname";
+ char *msg_h_url   = "URL";
+ char *msg_h_agent = "User Agent";
+@@ -245,7 +247,9 @@
+ char *msg_mtot_ms = "Monthly Statistics for";
+ char *msg_mtot_th = "Total Hits";
+ char *msg_mtot_tf = "Total Files";
+-char *msg_mtot_tx = "Total KBytes";
++char *msg_mtot_tx = "Total kB Files";
++char *msg_mtot_ix = "Total kB In";
++char *msg_mtot_ox = "Total kB Out";
+ char *msg_mtot_us = "Total Unique Sites";
+ char *msg_mtot_ur = "Total Unique Referrers";
+ char *msg_mtot_ua = "Total Unique User Agents";
+@@ -257,7 +261,9 @@
+ char *msg_mtot_mpd= "Pages per Day";
+ char *msg_mtot_msd= "Sites per Day";
+ char *msg_mtot_mvd= "Visits per Day";
+-char *msg_mtot_mkd= "KBytes per Day";
++char *msg_mtot_mkd= "kB Files per Day";
++char *msg_mtot_ikd= "kB In per Day";
++char *msg_mtot_okd= "kB Out per Day";
+ char *msg_mtot_rc = "Hits by Response Code";
+ 
+ /* daily total table */
+Index: webalizer/lang/webalizer_lang.estonian
+===================================================================
+--- webalizer.orig/lang/webalizer_lang.estonian	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/lang/webalizer_lang.estonian	2011-04-18 23:56:44.000000000 +0200
+@@ -218,7 +218,9 @@
+ char *msg_h_visits= "Külastusi";
+ char *msg_h_files = "Faile";
+ char *msg_h_sites = "Arvuteid";
+-char *msg_h_xfer  = "KBaite";
++char *msg_h_xfer  = "kB F";
++char *msg_h_ixfer = "kB In";
++char *msg_h_oxfer = "kB Out";
+ char *msg_h_hname = "Server";
+ char *msg_h_url   = "Aadress";
+ char *msg_h_agent = "Lehitseja";
+@@ -244,7 +246,9 @@
+ char *msg_mtot_ms = "Kuu statistika";
+ char *msg_mtot_th = "Kokku Pöördumisi";
+ char *msg_mtot_tf = "Kokku Faile";
+-char *msg_mtot_tx = "Kokku KBaite";
++char *msg_mtot_tx = "Kokku kB Faile";
++char *msg_mtot_ix = "Kokku kB In";
++char *msg_mtot_ox = "Kokku kB Out";
+ char *msg_mtot_us = "Kokku Erinevaid Kasutajaid";
+ char *msg_mtot_ur = "Kokku Erinevaid Viitajaid";
+ char *msg_mtot_ua = "Kokku Erinevaid Lehitsejaid";
+@@ -256,7 +260,9 @@
+ char *msg_mtot_mpd= "Lehekülgi Päevas";
+ char *msg_mtot_msd= "Külastajaarvutist Päevas";
+ char *msg_mtot_mvd= "Visiite Päevas";
+-char *msg_mtot_mkd= "KBaite Päevas";
++char *msg_mtot_mkd= "kB Faile Päevas";
++char *msg_mtot_ikd= "kB In Päevas";
++char *msg_mtot_okd= "kB Out Päevas";
+ char *msg_mtot_rc = "Pöördumisi vastusetüüpide kaupa";
+ 
+ /* daily total table */
+Index: webalizer/lang/webalizer_lang.finnish
+===================================================================
+--- webalizer.orig/lang/webalizer_lang.finnish	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/lang/webalizer_lang.finnish	2011-04-18 23:56:44.000000000 +0200
+@@ -226,7 +226,9 @@
+ char *msg_h_visits= "vierailuja";
+ char *msg_h_files = "tiedostoja";
+ char *msg_h_sites = "koneita";
+-char *msg_h_xfer  = "kilotavuja";
++char *msg_h_xfer  = "kB T";
++char *msg_h_ixfer = "kB In";
++char *msg_h_oxfer = "kB Out";
+ char *msg_h_hname = "Välityspalvelin";
+ char *msg_h_url   = "URL";
+ char *msg_h_agent = "Käytetyt selaimet";
+@@ -252,7 +254,9 @@
+ char *msg_mtot_ms = "Kuukausitilastot";
+ char *msg_mtot_th = "Osumia yhteensä";
+ char *msg_mtot_tf = "Tiedostoja yhteensä";
+-char *msg_mtot_tx = "Kilotavuja yhteensä";
++char *msg_mtot_tx = "kB Tiedostoja yhteensä";
++char *msg_mtot_ix = "kB In yhteensä";
++char *msg_mtot_ox = "kB Out yhteensä";
+ char *msg_mtot_us = "Yhteensä erilaisia koneita";
+ char *msg_mtot_ur = "Yhteensä erilaisia hakupalvelimia";
+ char *msg_mtot_ua = "Yhteensä erilaisia selaimia";
+@@ -264,7 +268,9 @@
+ char *msg_mtot_mpd= "Sivuja / päivä";
+ char *msg_mtot_msd= "Koneita / päivä";
+ char *msg_mtot_mvd= "Vierailuja / päivä";
+-char *msg_mtot_mkd= "Kilotavuja / päivä";
++char *msg_mtot_mkd= "kB Tiedostoja / päivä";
++char *msg_mtot_ikd= "kB In / päivä";
++char *msg_mtot_okd= "kB Out / päivä";
+ char *msg_mtot_rc = "Osumien vastauskoodit";
+ 
+ /* daily total table */
+Index: webalizer/lang/webalizer_lang.french
+===================================================================
+--- webalizer.orig/lang/webalizer_lang.french	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/lang/webalizer_lang.french	2011-04-18 23:56:44.000000000 +0200
+@@ -253,7 +253,9 @@
+ char *msg_h_visits= "Visites";
+ char *msg_h_files = "Fichiers";
+ char *msg_h_sites = "Sites";
+-char *msg_h_xfer  = "Ko";
++char *msg_h_xfer  = "kB F";
++char *msg_h_ixfer = "kB In";
++char *msg_h_oxfer = "kB Out";
+ char *msg_h_hname = "Nom d'h&ocirc;te";
+ char *msg_h_url   = "URL";
+ char *msg_h_agent = "Navigateur";
+@@ -279,7 +281,9 @@
+ char *msg_mtot_ms = "Statistiques mensuelles pour";
+ char *msg_mtot_th = "Total des Hits";
+ char *msg_mtot_tf = "Total des Fichiers";
+-char *msg_mtot_tx = "Total des Ko";
++char *msg_mtot_tx = "Total des kB Fichiers";
++char *msg_mtot_ix = "Total des kB In";
++char *msg_mtot_ox = "Total des kB Out";
+ char *msg_mtot_us = "Total des Sites uniques";
+ char *msg_mtot_ur = "Total des R&eacute;f&eacute;rents uniques";
+ char *msg_mtot_ua = "Total des Navigateurs";
+@@ -291,7 +295,9 @@
+ char *msg_mtot_mpd= "Pages par Jour";
+ char *msg_mtot_msd= "Sites par Jour";
+ char *msg_mtot_mvd= "Visites par Jour";
+-char *msg_mtot_mkd= "KOctets par Jour";
++char *msg_mtot_mkd= "kB Fichiers par Jour";
++char *msg_mtot_ikd= "kB In par Jour";
++char *msg_mtot_okd= "kB Out par Jour";
+ char *msg_mtot_rc = "Hits par code de r&eacute;ponse";
+ 
+ /* daily total table */
+Index: webalizer/lang/webalizer_lang.galician
+===================================================================
+--- webalizer.orig/lang/webalizer_lang.galician	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/lang/webalizer_lang.galician	2011-04-18 23:56:44.000000000 +0200
+@@ -223,7 +223,9 @@
+ char *msg_h_visits= "Visitas";
+ char *msg_h_files = "Arquivos";
+ char *msg_h_sites = "Clientes";
+-char *msg_h_xfer  = "KBytes";
++char *msg_h_xfer  = "kB A";
++char *msg_h_ixfer = "kB In";
++char *msg_h_oxfer = "kB Out";
+ char *msg_h_hname = "Máquina";
+ char *msg_h_url   = "URL";
+ char *msg_h_agent = "Programa cliente";
+@@ -249,7 +251,9 @@
+ char *msg_mtot_ms = "Estatísticas mensuais de";
+ char *msg_mtot_th = "Total Accesos";
+ char *msg_mtot_tf = "Total Arquivos";
+-char *msg_mtot_tx = "Total KBytes";
++char *msg_mtot_tx = "Total kB Arquivos";
++char *msg_mtot_ix = "Total kB In";
++char *msg_mtot_ox = "Total kB Out";
+ char *msg_mtot_us = "Total Clientes";
+ char *msg_mtot_ur = "Total Ligazóns orixe";
+ char *msg_mtot_ua = "Total Programas visores";
+@@ -261,7 +265,9 @@
+ char *msg_mtot_mpd= "Páxinas por Día";
+ char *msg_mtot_msd= "Clientes por Día";
+ char *msg_mtot_mvd= "Visitas por Día";
+-char *msg_mtot_mkd= "KBytes por Día";
++char *msg_mtot_mkd= "kB Arquivos por Día";
++char *msg_mtot_ikd= "kB In por Día";
++char *msg_mtot_okd= "kB Out por Día";
+ char *msg_mtot_rc = "Accesos por código de resposta";
+ 
+ /* daily total table */
+Index: webalizer/lang/webalizer_lang.german
+===================================================================
+--- webalizer.orig/lang/webalizer_lang.german	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/lang/webalizer_lang.german	2011-04-18 23:56:44.000000000 +0200
+@@ -243,7 +243,9 @@
+ char *msg_h_visits= "Besuche";
+ char *msg_h_files = "Dateien";
+ char *msg_h_sites = "Rechner";
+-char *msg_h_xfer  = "kb";
++char *msg_h_xfer  = "kB D";
++char *msg_h_ixfer = "kB In";
++char *msg_h_oxfer = "kB Out";
+ char *msg_h_hname = "Rechnername";
+ char *msg_h_url   = "URL";
+ char *msg_h_agent = "Anwenderprogramm";
+@@ -269,7 +271,9 @@
+ char *msg_mtot_ms = "Monats-Statistik f&uuml;r";
+ char *msg_mtot_th = "Summe der Anfragen";
+ char *msg_mtot_tf = "Summe der Dateien";
+-char *msg_mtot_tx = "Summe in kb";
++char *msg_mtot_tx = "Summe kB Dateien";
++char *msg_mtot_ix = "Summe kB In";
++char *msg_mtot_ox = "Summe kB Out";
+ char *msg_mtot_us = "Summe der unterschiedlichen Rechner (IP-Adressen)";
+ char *msg_mtot_ur = "Summe der unterschiedlichen Verweise";
+ char *msg_mtot_ua = "Summe der unterschiedlichen Anwenderprogramme";
+@@ -281,7 +285,9 @@
+ char *msg_mtot_mpd= "Seiten pro Tag";
+ char *msg_mtot_msd= "Rechner (IP-Adressen) pro Tag";
+ char *msg_mtot_mvd= "Besuche pro Tag";
+-char *msg_mtot_mkd= "kb pro Tag";
++char *msg_mtot_mkd= "kB Dateien pro Tag";
++char *msg_mtot_ikd= "kB In pro Tag";
++char *msg_mtot_okd= "kB Out pro Tag";
+ char *msg_mtot_rc = "Anfragen nach Status-Codes";
+ 
+ /* daily total table */
+Index: webalizer/lang/webalizer_lang.greek
+===================================================================
+--- webalizer.orig/lang/webalizer_lang.greek	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/lang/webalizer_lang.greek	2011-04-18 23:56:44.000000000 +0200
+@@ -217,7 +217,9 @@
+ char *msg_h_visits= "ÅðéóêÝøåéò";
+ char *msg_h_files = "Áñ÷åßá";
+ char *msg_h_sites = "ÓõóôÞìáôá";
+-char *msg_h_xfer  = "KBytes";
++char *msg_h_xfer  = "kB F";
++char *msg_h_ixfer = "kB In";
++char *msg_h_oxfer = "kB Out";
+ char *msg_h_hname = "Óýóôçìá";
+ char *msg_h_url   = "URL";
+ char *msg_h_agent = "Ðñüãñáììá";
+@@ -243,7 +245,9 @@
+ char *msg_mtot_ms = "ÓõãêåíôñùôéêÜ óôïé÷åßá ãéá ôï ìÞíá";
+ char *msg_mtot_th = "ÓõíïëéêÜ Hits";
+ char *msg_mtot_tf = "Óýíïëï áñ÷åßùí";
+-char *msg_mtot_tx = "Óýíïëï KBytes";
++char *msg_mtot_tx = "Óýíïëï kB áñ÷åßùí";
++char *msg_mtot_ix = "Óýíïëï kB In";
++char *msg_mtot_ox = "Óýíïëï kB Out";
+ char *msg_mtot_us = "Óýíïëï äéáöïñåôéêþí óõóôçìÜôùí";
+ char *msg_mtot_ur = "Óýíïëï äéáöïñåôéêþí áíáöåñüíôùí";
+ char *msg_mtot_ua = "Óýíïëï äéáöïñåôéêþí ðñïãñáììÜôùí";
+@@ -255,7 +259,9 @@
+ char *msg_mtot_mpd= "Óåëßäåò áíÜ çìÝñá";
+ char *msg_mtot_msd= "Sites per Day";
+ char *msg_mtot_mvd= "ÅðéóêÝøåéò áíÜ çìÝñá";
+-char *msg_mtot_mkd= "KBytes áíÜ çìÝñá";
++char *msg_mtot_mkd= "kB Áñ÷åßá áíÜ çìÝñá";
++char *msg_mtot_ikd= "kB In áíÜ çìÝñá";
++char *msg_mtot_okd= "kB Out áíÜ çìÝñá";
+ char *msg_mtot_rc = "Hits áðü ôï áðïôÝëåóìá";
+ 
+ /* daily total table */
+Index: webalizer/lang/webalizer_lang.hungarian
+===================================================================
+--- webalizer.orig/lang/webalizer_lang.hungarian	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/lang/webalizer_lang.hungarian	2011-04-18 23:56:44.000000000 +0200
+@@ -224,7 +224,9 @@
+ char *msg_h_visits= "Látogatók";
+ char *msg_h_files = "File-ok";
+ char *msg_h_sites = "Oldalak";
+-char *msg_h_xfer  = "KByte";
++char *msg_h_xfer  = "kB F";
++char *msg_h_ixfer = "kB In";
++char *msg_h_oxfer = "kB Out";
+ char *msg_h_hname = "Hostnév";
+ char *msg_h_url   = "URL";
+ char *msg_h_agent = "Felhasználó böngészõje";
+@@ -250,7 +252,9 @@
+ char *msg_mtot_ms = "Havi Statisztika:";
+ char *msg_mtot_th = "Összes Találat";
+ char *msg_mtot_tf = "Összes File";
+-char *msg_mtot_tx = "Összes KByte";
++char *msg_mtot_tx = "Összes kB File";
++char *msg_mtot_ix = "Összes kB In";
++char *msg_mtot_ox = "Összes kB Out";
+ char *msg_mtot_us = "Összes különbözõ Oldal";
+ char *msg_mtot_ur = "Összes különbözõ Hivatkozás";
+ char *msg_mtot_ua = "Összes különbözõ Felhasználó böngészõje";
+@@ -262,7 +266,9 @@
+ char *msg_mtot_mpd= "Lap/nap";
+ char *msg_mtot_msd= "Oldal/nap";
+ char *msg_mtot_mvd= "Látogató/nap";
+-char *msg_mtot_mkd= "KByte/nap";
++char *msg_mtot_mkd= "kB File/nap";
++char *msg_mtot_ikd= "kB In/nap";
++char *msg_mtot_okd= "kB Out/nap";
+ char *msg_mtot_rc = "Válaszkódok általi találatok";
+ 
+ /* daily total table */
+Index: webalizer/lang/webalizer_lang.icelandic
+===================================================================
+--- webalizer.orig/lang/webalizer_lang.icelandic	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/lang/webalizer_lang.icelandic	2011-04-18 23:56:44.000000000 +0200
+@@ -226,7 +226,9 @@
+ char *msg_h_visits= "Heimsóknir";
+ char *msg_h_files = "Skrár";
+ char *msg_h_sites = "Sites";
+-char *msg_h_xfer  = "KBæti";
++char *msg_h_xfer  = "kB S";
++char *msg_h_ixfer = "kB In";
++char *msg_h_oxfer = "kB Out";
+ char *msg_h_hname = "Host nafn";
+ char *msg_h_url   = "Slóð";
+ char *msg_h_agent = "User Agent";
+@@ -252,7 +254,9 @@
+ char *msg_mtot_ms = "Mánaðar Samtölur fyrir";
+ char *msg_mtot_th = "Samtals Beiðnir";
+ char *msg_mtot_tf = "Samtals Skrár";
+-char *msg_mtot_tx = "Samtals KBæti";
++char *msg_mtot_tx = "Samtals kB Skrár";
++char *msg_mtot_ix = "Samtals kB In";
++char *msg_mtot_ox = "Samtals kB Out";
+ char *msg_mtot_us = "Samtals Einstakar Síður";
+ char *msg_mtot_ur = "Samtals Unique Referrers";
+ char *msg_mtot_ua = "Samtals Unique User Agents";
+@@ -264,7 +268,9 @@
+ char *msg_mtot_mpd= "Síður á Dag";
+ char *msg_mtot_msd= "Síður (sites) á Dag";
+ char *msg_mtot_mvd= "Heimsóknir á Dag";
+-char *msg_mtot_mkd= "KBæti á Dag";
++char *msg_mtot_mkd= "kB Skrár á Dag";
++char *msg_mtot_ikd= "kB In á Dag";
++char *msg_mtot_okd= "kB Out á Dag";
+ char *msg_mtot_rc = "Hits by Response Code";
+ 
+ /* daily total table */
+Index: webalizer/lang/webalizer_lang.indonesian
+===================================================================
+--- webalizer.orig/lang/webalizer_lang.indonesian	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/lang/webalizer_lang.indonesian	2011-04-18 23:56:44.000000000 +0200
+@@ -222,7 +222,9 @@
+ char *msg_h_visits= "Kunjungan";
+ char *msg_h_files = "File";
+ char *msg_h_sites = "Situs";
+-char *msg_h_xfer  = "KByte";
++char *msg_h_xfer  = "kB F";
++char *msg_h_ixfer = "kB In";
++char *msg_h_oxfer = "kB Out";
+ char *msg_h_hname = "Nama Host";
+ char *msg_h_url   = "URL";
+ char *msg_h_agent = "Browser/User Agent";
+@@ -248,7 +250,9 @@
+ char *msg_mtot_ms = "Statistik bulanan untuk";
+ char *msg_mtot_th = "Jumlah Hit";
+ char *msg_mtot_tf = "Jumlah File";
+-char *msg_mtot_tx = "Jumlah KByte";
++char *msg_mtot_tx = "Jumlah kB File";
++char *msg_mtot_ix = "Jumlah kB In";
++char *msg_mtot_ox = "Jumlah kB Out";
+ char *msg_mtot_us = "Jumlah Situs unik";
+ char *msg_mtot_ur = "Jumlah Acuan unik";
+ char *msg_mtot_ua = "Jumlah Browser unik";
+@@ -260,7 +264,9 @@
+ char *msg_mtot_mpd= "Halaman per hari";
+ char *msg_mtot_msd= "Situs per hari";
+ char *msg_mtot_mvd= "Kunjungan per hari";
+-char *msg_mtot_mkd= "KByte per hari";
++char *msg_mtot_mkd= "kB File per hari";
++char *msg_mtot_ikd= "kB In per hari";
++char *msg_mtot_okd= "kB Out per hari";
+ char *msg_mtot_rc = "Hit oleh kode respon";
+ 
+ /* daily total table */
+Index: webalizer/lang/webalizer_lang.italian
+===================================================================
+--- webalizer.orig/lang/webalizer_lang.italian	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/lang/webalizer_lang.italian	2011-04-18 23:56:44.000000000 +0200
+@@ -221,7 +221,9 @@
+ char *msg_h_visits= "Visite";
+ char *msg_h_files = "File";
+ char *msg_h_sites = "Siti";
+-char *msg_h_xfer  = "KBytes";
++char *msg_h_xfer  = "kB F";
++char *msg_h_ixfer = "kB In";
++char *msg_h_oxfer = "kB Out";
+ char *msg_h_hname = "Nomi di Host";
+ char *msg_h_url   = "URL";
+ char *msg_h_agent = "Browser";
+@@ -247,7 +249,9 @@
+ char *msg_mtot_ms = "Statistiche Mensili per";
+ char *msg_mtot_th = "Contatti";
+ char *msg_mtot_tf = "File";
+-char *msg_mtot_tx = "KBytes";
++char *msg_mtot_tx = "kB File";
++char *msg_mtot_ix = "kB In";
++char *msg_mtot_ox = "kB Out";
+ char *msg_mtot_us = "Nomi di Host";
+ char *msg_mtot_ur = "Referrer";
+ char *msg_mtot_ua = "Browser";
+@@ -259,7 +263,9 @@
+ char *msg_mtot_mpd= "Pagine Giornaliere";
+ char *msg_mtot_msd= "Host Giornaliere";
+ char *msg_mtot_mvd= "Visite Giornaliere";
+-char *msg_mtot_mkd= "KBytes Giornalieri";
++char *msg_mtot_mkd= "kB File Giornalieri";
++char *msg_mtot_ikd= "kB In Giornalieri";
++char *msg_mtot_okd= "kB Out Giornalieri";
+ char *msg_mtot_rc = "Contatti per Codice di Risposta";
+ 
+ /* daily total table */
+Index: webalizer/lang/webalizer_lang.japanese
+===================================================================
+--- webalizer.orig/lang/webalizer_lang.japanese	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/lang/webalizer_lang.japanese	2011-04-18 23:56:44.000000000 +0200
+@@ -215,7 +215,9 @@
+ char *msg_h_visits= "Visits";
+ char *msg_h_files = "Files";
+ char *msg_h_sites = "Sites";
+-char *msg_h_xfer  = "KBytes";
++char *msg_h_xfer  = "kB F";
++char *msg_h_ixfer = "kB In";
++char *msg_h_oxfer = "kB Out";
+ char *msg_h_hname = "¥Û¥¹¥ÈÌ¾";
+ char *msg_h_url   = "URL";
+ char *msg_h_agent = "¥æ¡¼¥¶¥¨¡¼¥¸¥§¥ó¥È";
+@@ -242,6 +244,8 @@
+ char *msg_mtot_th = "Á´¥Ò¥Ã¥È¿ô";
+ char *msg_mtot_tf = "Á´¥Õ¥¡¥¤¥ë¿ô";
+ char *msg_mtot_tx = "Á´ KBytes¿ô";
++char *msg_mtot_ix = "Total kB In";
++char *msg_mtot_ox = "Total kB Out";
+ char *msg_mtot_us = "¸ÄÊÌ¥µ¥¤¥È¿ô";
+ char *msg_mtot_ur = "¸ÄÊÌ¥ê¥Õ¥¡¥é¡¼¿ô";
+ char *msg_mtot_ua = "¸ÄÊÌ¥æ¡¼¥¶¥¨¡¼¥¸¥§¥ó¥È¿ô";
+@@ -254,6 +258,8 @@
+ char *msg_mtot_msd= "Sites per Day";
+ char *msg_mtot_mvd= "°ìÆü¤¢¤¿¤ê¤ÎË¬Ìä¼Ô¿ô";
+ char *msg_mtot_mkd= "°ìÆü¤¢¤¿¤ê¤ÎKBytes¿ô";
++char *msg_mtot_ikd= "kB In per day";
++char *msg_mtot_okd= "kB Out per day";
+ char *msg_mtot_rc = "¥ì¥¹¥Ý¥ó¥¹¥³¡¼¥É¤´¤È¤Î¥Ò¥Ã¥È¿ô";
+ 
+ /* daily total table */
+Index: webalizer/lang/webalizer_lang.korean
+===================================================================
+--- webalizer.orig/lang/webalizer_lang.korean	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/lang/webalizer_lang.korean	2011-04-18 23:56:44.000000000 +0200
+@@ -219,7 +219,9 @@
+ char *msg_h_visits= "Visits";
+ char *msg_h_files = "Files";
+ char *msg_h_sites = "Sites";
+-char *msg_h_xfer  = "KBytes";
++char *msg_h_xfer  = "kB F";
++char *msg_h_ixfer = "kB In";
++char *msg_h_oxfer = "kB Out";
+ char *msg_h_hname = "È£½ºÆ®¸í";
+ char *msg_h_url   = "URL";
+ char *msg_h_agent = "¿¡ÀÌÀüÆ®";
+@@ -245,7 +247,9 @@
+ char *msg_mtot_ms = "¿ùº° Åë°è";
+ char *msg_mtot_th = "ÃÑ È÷Æ®¼ö";
+ char *msg_mtot_tf = "ÃÑ ÆÄÀÏ¼ö";
+-char *msg_mtot_tx = "ÃÑ KByte";
++char *msg_mtot_tx = "ÃÑ kB ÆÄÀÏ¼ö";
++char *msg_mtot_ix = "ÃÑ kB In";
++char *msg_mtot_ox = "ÃÑ kB Out";
+ char *msg_mtot_us = "ÃÑ °³º° »çÀÌÆ®";
+ char *msg_mtot_ur = "ÃÑ °³º° ·¹ÆÛ·²";
+ char *msg_mtot_ua = "ÃÑ °³º° ¿¡ÀÌÀüÆ®";
+@@ -257,7 +261,9 @@
+ char *msg_mtot_mpd= "Pages per Day";
+ char *msg_mtot_msd= "Sites per Day";
+ char *msg_mtot_mvd= "Visits per Day";
+-char *msg_mtot_mkd= "KBytes per Day";
++char *msg_mtot_mkd= "kB Files per Day";
++char *msg_mtot_ikd= "kB In per Day";
++char *msg_mtot_okd= "kB Out per Day";
+ char *msg_mtot_rc = "ÀÀ´ä ÄÚµåº° È÷Æ®¼ö";
+ 
+ /* daily total table */
+Index: webalizer/lang/webalizer_lang.latvian
+===================================================================
+--- webalizer.orig/lang/webalizer_lang.latvian	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/lang/webalizer_lang.latvian	2011-04-18 23:56:44.000000000 +0200
+@@ -220,7 +220,9 @@
+ char *msg_h_visits= "Apmeklçjumi";
+ char *msg_h_files = "Faili";
+ char *msg_h_sites = "Sites";
+-char *msg_h_xfer  = "KBytes";
++char *msg_h_xfer  = "kB F";
++char *msg_h_ixfer = "kB In";
++char *msg_h_oxfer = "kB Out";
+ char *msg_h_hname = "Hostname";
+ char *msg_h_url   = "URL";
+ char *msg_h_agent = "Lietotâja programma";
+@@ -246,7 +248,9 @@
+ char *msg_mtot_ms = "Mçneðu pârskats pâr";
+ char *msg_mtot_th = "Kopçjie Apmeklçjumi";
+ char *msg_mtot_tf = "Kopçjie Faili";
+-char *msg_mtot_tx = "Kopçjie KBaiti";
++char *msg_mtot_tx = "Kopçjie kB Faili";
++char *msg_mtot_ix = "Kopçjie kB In";
++char *msg_mtot_ox = "Kopçjie kB Out";
+ char *msg_mtot_us = "Kopçjâs Unikâlâs Saites";
+ char *msg_mtot_ur = "Kopçjie Unikâlie Referreri";
+ char *msg_mtot_ua = "Kopçjâs Unikâlâs Lietotâju Programmas";
+@@ -258,7 +262,9 @@
+ char *msg_mtot_mpd= "Lapas Dienâ";
+ char *msg_mtot_msd= "Saites Dienâ";
+ char *msg_mtot_mvd= "Apmeklçjumi Dienâ";
+-char *msg_mtot_mkd= "KBaiti Dienâ";
++char *msg_mtot_mkd= "kB Faili dienâ";
++char *msg_mtot_ikd= "kB In dienâ";
++char *msg_mtot_okd= "kB Out dienâ";
+ char *msg_mtot_rc = "Hits by Response Code";
+ 
+ /* daily total table */
+Index: webalizer/lang/webalizer_lang.malay
+===================================================================
+--- webalizer.orig/lang/webalizer_lang.malay	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/lang/webalizer_lang.malay	2011-04-18 23:56:44.000000000 +0200
+@@ -220,7 +220,9 @@
+ char *msg_h_visits= "Lawatan";
+ char *msg_h_files = "Fail";
+ char *msg_h_sites = "Halaman";
+-char *msg_h_xfer  = "KBait";
++char *msg_h_xfer  = "kB F";
++char *msg_h_ixfer = "kB In";
++char *msg_h_oxfer = "kB Out";
+ char *msg_h_hname = "Nama Hos";
+ char *msg_h_url   = "URL";
+ char *msg_h_agent = "Agen Pengguna";
+@@ -246,7 +248,9 @@
+ char *msg_mtot_ms = "Statistik Bulanan Untuk";
+ char *msg_mtot_th = "Jumlah Capaian";
+ char *msg_mtot_tf = "Jumlah Fail";
+-char *msg_mtot_tx = "Jumlah KBait";
++char *msg_mtot_tx = "Jumlah kB Fail";
++char *msg_mtot_ix = "Jumlah kB In";
++char *msg_mtot_ox = "Jumlah kB Out";
+ char *msg_mtot_us = "Jumlah Halaman Unik";
+ char *msg_mtot_ur = "Jumlah Perujuk Unik";
+ char *msg_mtot_ua = "Jumlah Agen Pengguna Unik";
+@@ -258,7 +262,9 @@
+ char *msg_mtot_mpd= "Purata Halaman Sehari";
+ char *msg_mtot_msd= "Sites per Day";
+ char *msg_mtot_mvd= "Purata Lawatan Sehari";
+-char *msg_mtot_mkd= "Purata KBait Sehari";
++char *msg_mtot_mkd= "Purata kB Sehari Fail";
++char *msg_mtot_ikd= "Purata kB Sehari In";
++char *msg_mtot_okd= "Purata kB Sehari Out";
+ char *msg_mtot_rc = "Purata Capaian mengikut Kod Respon";
+ 
+ /* daily total table */
+Index: webalizer/lang/webalizer_lang.norwegian
+===================================================================
+--- webalizer.orig/lang/webalizer_lang.norwegian	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/lang/webalizer_lang.norwegian	2011-04-18 23:56:44.000000000 +0200
+@@ -231,7 +231,9 @@
+ char *msg_h_visits= "Besøk";
+ char *msg_h_files = "Filer";
+ char *msg_h_sites = "Klientadresser";
+-char *msg_h_xfer  = "kilobyte";
++char *msg_h_xfer  = "kB F";
++char *msg_h_ixfer = "kB In";
++char *msg_h_oxfer = "kB Out";
+ char *msg_h_hname = "Servernavn";
+ char *msg_h_url   = "URL";
+ char *msg_h_agent = "Klienttype";
+@@ -257,7 +259,9 @@
+ char *msg_mtot_ms = "Månedlig statistikk for";
+ char *msg_mtot_th = "Totalt antall treff";
+ char *msg_mtot_tf = "Totalt antall filer";
+-char *msg_mtot_tx = "Totalt antall kilobytes";
++char *msg_mtot_tx = "Totalt antall kB filer";
++char *msg_mtot_ix = "Totalt antall kB in";
++char *msg_mtot_ox = "Totalt antall kB out";
+ char *msg_mtot_us = "Totalt antall unike klientadresser";
+ char *msg_mtot_ur = "Totalt antall unike henvisninger";
+ char *msg_mtot_ua = "Totalt antall unike klienttyper";
+@@ -269,7 +273,9 @@
+ char *msg_mtot_mpd= "Sider per dag";
+ char *msg_mtot_msd= "Klientadresser per dag";
+ char *msg_mtot_mvd= "Besök per dag";
+-char *msg_mtot_mkd= "Kilobytes per dag";
++char *msg_mtot_mkd= "kB Filer per dag";
++char *msg_mtot_ikd= "kB In per dag";
++char *msg_mtot_okd= "kB Out per dag";
+ char *msg_mtot_rc = "Treff sortert etter responskode";
+ 
+ /* daily total table */
+Index: webalizer/lang/webalizer_lang.polish
+===================================================================
+--- webalizer.orig/lang/webalizer_lang.polish	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/lang/webalizer_lang.polish	2011-04-18 23:56:44.000000000 +0200
+@@ -226,7 +226,9 @@
+ char *msg_h_visits= "Wizyty";
+ char *msg_h_files = "Pliki";
+ char *msg_h_sites = "Lokalizacje";
+-char *msg_h_xfer  = "KB";
++char *msg_h_xfer  = "kB P";
++char *msg_h_ixfer = "kB In";
++char *msg_h_oxfer = "kB Out";
+ char *msg_h_hname = "Nazwa hosta";
+ char *msg_h_url   = "URL";
+ char *msg_h_agent = "Przegl±darka";
+@@ -252,7 +254,9 @@
+ char *msg_mtot_ms = "Statystyka w miesi±cu:";
+ char *msg_mtot_th = "Ca³kowita liczba wywo³añ";
+ char *msg_mtot_tf = "Ca³kowita liczba plików";
+-char *msg_mtot_tx = "Ca³kowita liczba KB";
++char *msg_mtot_tx = "Ca³kowita liczba kB plików";
++char *msg_mtot_ix = "Ca³kowita liczba kB in";
++char *msg_mtot_ox = "Ca³kowita liczba kB out";
+ char *msg_mtot_us = "Ca³kowita liczba unikalnych lokalizacji";
+ char *msg_mtot_ur = "Ca³kowita liczba unikalnych odno¶ników";
+ char *msg_mtot_ua = "Ca³kowita liczba unikalnych przegl±darek";
+@@ -264,7 +268,9 @@
+ char *msg_mtot_mpd= "Stron dziennie";
+ char *msg_mtot_msd= "Lokalizacji dziennie";
+ char *msg_mtot_mvd= "Wizyt dziennie";
+-char *msg_mtot_mkd= "Kilobajtów dziennie";
++char *msg_mtot_mkd= "kB Plików dziennie";
++char *msg_mtot_ikd= "kB In dziennie";
++char *msg_mtot_okd= "kB Out dziennie";
+ char *msg_mtot_rc = "Wywo³ania wed³ug kodu odpowiedzi";
+ 
+ /* daily total table */
+Index: webalizer/lang/webalizer_lang.portuguese
+===================================================================
+--- webalizer.orig/lang/webalizer_lang.portuguese	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/lang/webalizer_lang.portuguese	2011-04-18 23:56:44.000000000 +0200
+@@ -225,7 +225,9 @@
+ char *msg_h_visits= "Visitas";
+ char *msg_h_files = "Ficheiros";
+ char *msg_h_sites = "Sites";
+-char *msg_h_xfer  = "KBytes";
++char *msg_h_xfer  = "kB F";
++char *msg_h_ixfer = "kB In";
++char *msg_h_oxfer = "kB Out";
+ char *msg_h_hname = "Hostname";
+ char *msg_h_url   = "URL";
+ char *msg_h_agent = "User Agent";
+@@ -251,7 +253,9 @@
+ char *msg_mtot_ms = "Estatística Mensal de";
+ char *msg_mtot_th = "Total de Hits";
+ char *msg_mtot_tf = "Total de Ficheiros";
+-char *msg_mtot_tx = "Total de KBytes";
++char *msg_mtot_tx = "Total de kB Ficheiros";
++char *msg_mtot_ix = "Total de kB In";
++char *msg_mtot_ox = "Total de kB Out";
+ char *msg_mtot_us = "Total de Sites Únicos";
+ char *msg_mtot_ur = "Total de Referrers Únicos";
+ char *msg_mtot_ua = "Total de User Agents Únicos";
+@@ -263,7 +267,9 @@
+ char *msg_mtot_mpd= "Paginas por Dia";
+ char *msg_mtot_msd= "Sites por Dia";
+ char *msg_mtot_mvd= "Visitas por Dia";
+-char *msg_mtot_mkd= "KBytes por Dia";
++char *msg_mtot_mkd= "kB Files por Dia";
++char *msg_mtot_ikd= "kB In por Dia";
++char *msg_mtot_okd= "kB Out por Dia";
+ char *msg_mtot_rc = "Hits por Código de Resposta";
+ 
+ /* daily total table */
+Index: webalizer/lang/webalizer_lang.portuguese_brazil
+===================================================================
+--- webalizer.orig/lang/webalizer_lang.portuguese_brazil	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/lang/webalizer_lang.portuguese_brazil	2011-04-18 23:56:44.000000000 +0200
+@@ -226,7 +226,9 @@
+ char *msg_h_visits= "Visitas";
+ char *msg_h_files = "Arquivos";
+ char *msg_h_sites = "Endereços";
+-char *msg_h_xfer  = "KBytes";
++char *msg_h_xfer  = "kB A";
++char *msg_h_ixfer = "kB In";
++char *msg_h_oxfer = "kB Out";
+ char *msg_h_hname = "Servidores";
+ char *msg_h_url   = "URLs";
+ char *msg_h_agent = "Programa cliente";
+@@ -252,7 +254,9 @@
+ char *msg_mtot_ms = "Estatísticas Mensais para";
+ char *msg_mtot_th = "Total de hits";
+ char *msg_mtot_tf = "Total de arquivos";
+-char *msg_mtot_tx = "Total de KBytes";
++char *msg_mtot_tx = "Total de kB arquivos";
++char *msg_mtot_ix = "Total de kB in";
++char *msg_mtot_ox = "Total de kB out";
+ char *msg_mtot_us = "Total de servidores";
+ char *msg_mtot_ur = "Total de refer&ecirc;ncias";
+ char *msg_mtot_ua = "Total de programas clientes";
+@@ -264,7 +268,9 @@
+ char *msg_mtot_mpd= "Páginas por Dia";
+ char *msg_mtot_msd= "Servidores por Dia";
+ char *msg_mtot_mvd= "Visitas por Dia";
+-char *msg_mtot_mkd= "KBytes por Dia";
++char *msg_mtot_mkd= "kB Arquivos por Dia";
++char *msg_mtot_ikd= "kB In por Dia";
++char *msg_mtot_okd= "kB Out por Dia";
+ char *msg_mtot_rc = "Hits por código de resposta";
+ 
+ /* daily total table */
+Index: webalizer/lang/webalizer_lang.romanian
+===================================================================
+--- webalizer.orig/lang/webalizer_lang.romanian	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/lang/webalizer_lang.romanian	2011-04-18 23:56:44.000000000 +0200
+@@ -219,7 +219,9 @@
+ char *msg_h_visits= "Vizite";
+ char *msg_h_files = "Fisiere";
+ char *msg_h_sites = "Situri";
+-char *msg_h_xfer  = "KBytes";
++char *msg_h_xfer  = "kB F";
++char *msg_h_ixfer = "kB In";
++char *msg_h_oxfer = "kB Out";
+ char *msg_h_hname = "Nume";
+ char *msg_h_url   = "URL";
+ char *msg_h_agent = "Navigator";
+@@ -245,7 +247,9 @@
+ char *msg_mtot_ms = "Statistici lunare pentru";
+ char *msg_mtot_th = "Total accesari";
+ char *msg_mtot_tf = "Total fisiere";
+-char *msg_mtot_tx = "Total Kbytes";
++char *msg_mtot_tx = "Total kB fisiere";
++char *msg_mtot_ix = "Total kB in";
++char *msg_mtot_ox = "Total kB out";
+ char *msg_mtot_us = "Total situri unice";
+ char *msg_mtot_ur = "Total pagini referente unice";
+ char *msg_mtot_ua = "Total navigatoare";
+@@ -257,7 +261,9 @@
+ char *msg_mtot_mpd= "Pagini pe zi";
+ char *msg_mtot_msd= "Situri pe zi";
+ char *msg_mtot_mvd= "Vizite pe zi";
+-char *msg_mtot_mkd= "KBytes pe zi";
++char *msg_mtot_mkd= "kB Fisiere pe zi";
++char *msg_mtot_ikd= "kB In pe zi";
++char *msg_mtot_okd= "kB Out pe zi";
+ char *msg_mtot_rc = "Accesari dupa codul de raspuns";
+ 
+ /* daily total table */
+Index: webalizer/lang/webalizer_lang.romanian-iso-8859-2
+===================================================================
+--- webalizer.orig/lang/webalizer_lang.romanian-iso-8859-2	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/lang/webalizer_lang.romanian-iso-8859-2	2011-04-18 23:56:44.000000000 +0200
+@@ -220,7 +220,9 @@
+ char *msg_h_visits= "Vizite";
+ char *msg_h_files = "Fiºiere";
+ char *msg_h_sites = "Situri";
+-char *msg_h_xfer  = "KBytes";
++char *msg_h_xfer  = "kB F";
++char *msg_h_ixfer = "kB In";
++char *msg_h_oxfer = "kB Out";
+ char *msg_h_hname = "Nume";
+ char *msg_h_url   = "URL";
+ char *msg_h_agent = "Navigator";
+@@ -246,7 +248,9 @@
+ char *msg_mtot_ms = "Statistici lunare pentru";
+ char *msg_mtot_th = "Total accesãri";
+ char *msg_mtot_tf = "Total fiºiere";
+-char *msg_mtot_tx = "Total Kbytes";
++char *msg_mtot_tx = "Total kB fiºiere";
++char *msg_mtot_ix = "Total kB in";
++char *msg_mtot_ox = "Total kB out";
+ char *msg_mtot_us = "Total situri unice";
+ char *msg_mtot_ur = "Total pagini referente unice";
+ char *msg_mtot_ua = "Total navigatoare";
+@@ -258,7 +262,9 @@
+ char *msg_mtot_mpd= "Pagini pe zi";
+ char *msg_mtot_msd= "Situri pe zi";
+ char *msg_mtot_mvd= "Vizite pe zi";
+-char *msg_mtot_mkd= "KBytes pe zi";
++char *msg_mtot_mkd= "kB Fiºiere pe zi";
++char *msg_mtot_ikd= "kB In pe zi";
++char *msg_mtot_okd= "kB Out pe zi";
+ char *msg_mtot_rc = "Accesãri dupã codul de rãspuns";
+ 
+ /* daily total table */
+Index: webalizer/lang/webalizer_lang.russian
+===================================================================
+--- webalizer.orig/lang/webalizer_lang.russian	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/lang/webalizer_lang.russian	2011-04-18 23:56:44.000000000 +0200
+@@ -232,7 +232,9 @@
+ char *msg_h_visits= "ÐÏÓÅÝÅÎÉÊ";
+ char *msg_h_files = "ÆÁÊÌÏ×";
+ char *msg_h_sites = "ÓÁÊÔÏ×";
+-char *msg_h_xfer  = "ëÂÁÊÔ";
++char *msg_h_xfer  = "kB Æ";
++char *msg_h_ixfer = "kB In";
++char *msg_h_oxfer = "kB Out";
+ char *msg_h_hname = "éÍÑ ÈÏÓÔÁ";
+ char *msg_h_url   = "URL";
+ char *msg_h_agent = "âÒÏÕÚÅÒ";
+@@ -258,7 +260,9 @@
+ char *msg_mtot_ms = "óÔÁÔÉÓÔÉËÁ ÚÁ ÍÅÓÑÃ ÎÁ";
+ char *msg_mtot_th = "÷ÓÅÇÏ ÚÁÐÒÏÓÏ×";
+ char *msg_mtot_tf = "÷ÓÅÇÏ ÆÁÊÌÏ×";
+-char *msg_mtot_tx = "÷ÓÅÇÏ ËÉÌÏÂÁÊÔ";
++char *msg_mtot_tx = "÷ÓÅÇÏ kB ÆÁÊÌÏ×";
++char *msg_mtot_ix = "÷ÓÅÇÏ kB In";
++char *msg_mtot_ox = "÷ÓÅÇÏ kB Out";
+ char *msg_mtot_us = "÷ÓÅÇÏ ÕÎÉËÁÌØÎÙÈ ÓÁÊÔÏ×";
+ char *msg_mtot_ur = "÷ÓÅÇÏ ÕÎÉËÁÌØÎÙÈ ÓÓÙÌÁÀÝÉÈÓÑ ÓÔÒÁÎÉÃ";
+ char *msg_mtot_ua = "÷ÓÅÇÏ ÕÎÉËÁÌØÎÙÈ ÂÒÏÕÚÅÒÏ×";
+@@ -271,6 +275,8 @@
+ char *msg_mtot_msd= "Sites per Day";
+ char *msg_mtot_mvd= "ðÏÓÅÝÅÎÉÊ × ÄÅÎØ";
+ char *msg_mtot_mkd= "ïÂß£Í × ÄÅÎØ (ëÂÁÊÔ)";
++char *msg_mtot_ikd= "kB In per day";
++char *msg_mtot_okd= "kB Out per day";
+ char *msg_mtot_rc = "úÁÐÒÏÓÙ ÐÏ ËÏÄÁÍ ÏÔ×ÅÔÁ";
+ 
+ /* daily total table */
+Index: webalizer/lang/webalizer_lang.serbian
+===================================================================
+--- webalizer.orig/lang/webalizer_lang.serbian	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/lang/webalizer_lang.serbian	2011-04-18 23:56:44.000000000 +0200
+@@ -215,7 +215,9 @@
+ char *msg_h_visits= "Poseta";
+ char *msg_h_files = "Fajlova";
+ char *msg_h_sites = "Racunara";
+-char *msg_h_xfer  = "KB";
++char *msg_h_xfer  = "kB F";
++char *msg_h_ixfer = "kB U";
++char *msg_h_oxfer = "kB Van";
+ char *msg_h_hname = "Racunar";
+ char *msg_h_url   = "URL";
+ char *msg_h_agent = "Korisnicki program";
+@@ -241,7 +243,9 @@
+ char *msg_mtot_ms = "Mesecna statistika za";
+ char *msg_mtot_th = "Ukupno pristupa";
+ char *msg_mtot_tf = "Ukupno fajlova";
+-char *msg_mtot_tx = "Ukupno KBajta";
++char *msg_mtot_tx = "Ukupno kB fajlova";
++char *msg_mtot_ix = "Ukupno kB unutra";
++char *msg_mtot_ox = "Ukupno kB van";
+ char *msg_mtot_us = "Ukupno razlicitih racunara";
+ char *msg_mtot_ur = "Ukupno razlicitih referisanja";
+ char *msg_mtot_ua = "Ukupno razlicitih browsera";
+@@ -253,7 +257,9 @@
+ char *msg_mtot_mpd= "Fajlova na sat";
+ char *msg_mtot_msd= "Racunara na dan";
+ char *msg_mtot_mvd= "Poseta na dan";
+-char *msg_mtot_mkd= "KBajta na dan";
++char *msg_mtot_mkd= "kB Fajlova na dan";
++char *msg_mtot_ikd= "kB unutra na dan";
++char *msg_mtot_okd= "kB van na dan";
+ char *msg_mtot_rc = "Pristupa po kodu";
+ 
+ /* daily total table */
+Index: webalizer/lang/webalizer_lang.simplified_chinese
+===================================================================
+--- webalizer.orig/lang/webalizer_lang.simplified_chinese	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/lang/webalizer_lang.simplified_chinese	2011-04-18 23:56:44.000000000 +0200
+@@ -214,7 +214,9 @@
+ char *msg_h_visits= "·ÃÎÊ";
+ char *msg_h_files = "ÎÄ¼þ";
+ char *msg_h_sites = "Õ¾µã";
+-char *msg_h_xfer  = "Ç§×Ö½Ú";
++char *msg_h_xfer  = "kB F";
++char *msg_h_ixfer = "kB In";
++char *msg_h_oxfer = "kB Out";
+ char *msg_h_hname = "Ö÷»úÃû";
+ char *msg_h_url   = "URL";
+ char *msg_h_agent = "ÓÃ»§´úÀí";
+@@ -241,6 +243,8 @@
+ char *msg_mtot_th = "×Üµã»÷Êý";
+ char *msg_mtot_tf = "×ÜÎÄ¼þÊý";
+ char *msg_mtot_tx = "×ÜÇ§×Ö½ÚÊý";
++char *msg_mtot_ix = "Total kB In";
++char *msg_mtot_ox = "Total kB Out";
+ char *msg_mtot_us = "×ÜÕ¾µãÊý£¨²»°üÀ¨ÖØ¸´Õ¾µã£©";
+ char *msg_mtot_ur = "×ÜÒýÓÃÕßÊý£¨²»°üÀ¨ÖØ¸´ÒýÓÃÕß£©";
+ char *msg_mtot_ua = "×ÜÓÃ»§´úÀíÊý£¨²»°üÀ¨ÖØ¸´ÓÃ»§´úÀí£©";
+@@ -253,6 +257,8 @@
+ char *msg_mtot_msd= "Sites per Day";
+ char *msg_mtot_mvd= "Ã¿Ìì·ÃÎÊÊý";
+ char *msg_mtot_mkd= "Ã¿ÌìÁ÷Á¿Êý£¨µ¥Î»£ºÇ§×Ö½Ú£©";
++char *msg_mtot_ikd= "kB In per day";
++char *msg_mtot_okd= "kB Out per day";
+ char *msg_mtot_rc = "°´ÏìÓ¦ÂëµÄµã»÷Êý";
+ 
+ /* daily total table */
+Index: webalizer/lang/webalizer_lang.slovak
+===================================================================
+--- webalizer.orig/lang/webalizer_lang.slovak	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/lang/webalizer_lang.slovak	2011-04-18 23:56:44.000000000 +0200
+@@ -224,7 +224,9 @@
+ char *msg_h_visits= "náv¹tev";
+ char *msg_h_files = "súborov";
+ char *msg_h_sites = "miest";
+-char *msg_h_xfer  = "kBytov";
++char *msg_h_xfer  = "kB S";
++char *msg_h_ixfer = "kB In";
++char *msg_h_oxfer = "kB Out";
+ char *msg_h_hname = "poèítaè";
+ char *msg_h_url   = "URL";
+ char *msg_h_agent = "prehliadaè";
+@@ -250,7 +252,9 @@
+ char *msg_mtot_ms = "Mesaèné ¹tatistiky za";
+ char *msg_mtot_th = "Celkom zásahov";
+ char *msg_mtot_tf = "Celkom súborov";
+-char *msg_mtot_tx = "Celkom kBytov";
++char *msg_mtot_tx = "Celkom kB súborov";
++char *msg_mtot_ix = "Celkom kB in";
++char *msg_mtot_ox = "Celkom kB out";
+ char *msg_mtot_us = "Celkom jedineèných miest";
+ char *msg_mtot_ur = "Celkom jedineèných odkazovaèov";
+ char *msg_mtot_ua = "Celkom jedineèných Browsrov";
+@@ -262,7 +266,9 @@
+ char *msg_mtot_mpd= "Stránok za deò";
+ char *msg_mtot_msd= "Miest za deò";
+ char *msg_mtot_mvd= "Náv¹tev za deò";
+-char *msg_mtot_mkd= "kBytov za deò";
++char *msg_mtot_mkd= "kB Súborov za deò";
++char *msg_mtot_ikd= "kB In za deò";
++char *msg_mtot_okd= "kB Out za deò";
+ char *msg_mtot_rc = "Zásahy podµa kódu odpovede";
+ 
+ /* daily total table */
+Index: webalizer/lang/webalizer_lang.slovene
+===================================================================
+--- webalizer.orig/lang/webalizer_lang.slovene	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/lang/webalizer_lang.slovene	2011-04-18 23:56:44.000000000 +0200
+@@ -215,7 +215,9 @@
+ char *msg_h_visits= "Obiskov";
+ char *msg_h_files = "Datotek";
+ char *msg_h_sites = "Po podroèjih";
+-char *msg_h_xfer  = "KB";
++char *msg_h_xfer  = "kB D";
++char *msg_h_ixfer = "kB In";
++char *msg_h_oxfer = "kB Out";
+ char *msg_h_hname = "Gostitelj";
+ char *msg_h_url   = "URL";
+ char *msg_h_agent = "Brskalnik";
+@@ -241,7 +243,9 @@
+ char *msg_mtot_ms = "Meseèno poroèilo za";
+ char *msg_mtot_th = "Skupaj zahtevkov";
+ char *msg_mtot_tf = "Skupaj datotek";
+-char *msg_mtot_tx = "Skupaj KB";
++char *msg_mtot_tx = "Skupaj kB datotek";
++char *msg_mtot_ix = "Skupaj kB in";
++char *msg_mtot_ox = "Skupaj kB out";
+ char *msg_mtot_us = "Skupaj enkr. podroèij";
+ char *msg_mtot_ur = "Skupaj enkr. napotiteljev";
+ char *msg_mtot_ua = "Skupaj enkr. brskalnikov";
+@@ -253,7 +257,9 @@
+ char *msg_mtot_mpd= "Strani dnevno";
+ char *msg_mtot_msd= "Podroèij dnevno";
+ char *msg_mtot_mvd= "Obiskov dnevno";
+-char *msg_mtot_mkd= "KB dnevno";
++char *msg_mtot_mkd= "kB Datotek dnevno";
++char *msg_mtot_ikd= "kB In dnevno";
++char *msg_mtot_okd= "kB Out dnevno";
+ char *msg_mtot_rc = "Zahtevki po odzivnih kodah";
+ 
+ /* daily Skupaj table */
+Index: webalizer/lang/webalizer_lang.spanish
+===================================================================
+--- webalizer.orig/lang/webalizer_lang.spanish	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/lang/webalizer_lang.spanish	2011-04-18 23:56:44.000000000 +0200
+@@ -232,7 +232,9 @@
+ char *msg_h_visits= "Visitas";
+ char *msg_h_files = "Archivos";
+ char *msg_h_sites = "Clientes";
+-char *msg_h_xfer  = "KBytes";
++char *msg_h_xfer  = "kB A";
++char *msg_h_ixfer = "kB In";
++char *msg_h_oxfer = "kB Out";
+ char *msg_h_hname = "Máquina";
+ char *msg_h_url   = "URL";
+ char *msg_h_agent = "Navegador";
+@@ -258,7 +260,9 @@
+ char *msg_mtot_ms = "Estadísticas mensuales de";
+ char *msg_mtot_th = "Total Accesos";
+ char *msg_mtot_tf = "Total Archivos";
+-char *msg_mtot_tx = "Total KBytes";
++char *msg_mtot_tx = "Total kB Archivos";
++char *msg_mtot_ix = "Total kB In";
++char *msg_mtot_ox = "Total kB Out";
+ char *msg_mtot_us = "Total Clientes";
+ char *msg_mtot_ur = "Total Enlaces origen";
+ char *msg_mtot_ua = "Total Navegadores";
+@@ -270,7 +274,9 @@
+ char *msg_mtot_mpd= "Páginas por Día";
+ char *msg_mtot_msd= "Clientes por Día";
+ char *msg_mtot_mvd= "Visitas por Día";
+-char *msg_mtot_mkd= "KBytes por Día";
++char *msg_mtot_mkd= "kB Archivos por Día";
++char *msg_mtot_ikd= "kB In por Día";
++char *msg_mtot_okd= "kB Out por Día";
+ char *msg_mtot_rc = "Accesos por código de respuesta";
+ 
+ /* daily total table */
+Index: webalizer/lang/webalizer_lang.swedish
+===================================================================
+--- webalizer.orig/lang/webalizer_lang.swedish	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/lang/webalizer_lang.swedish	2011-04-18 23:56:44.000000000 +0200
+@@ -243,7 +243,9 @@
+ char *msg_h_visits= "Besök.";	//	GD
+ char *msg_h_files = "Filer";
+ char *msg_h_sites = "Klient.";
+-char *msg_h_xfer  = "kilobyte";
++char *msg_h_xfer  = "kB F";
++char *msg_h_ixfer = "kB In";
++char *msg_h_oxfer = "kB Ut";
+ //	char *msg_h_hname = "V&auml;rdnamn";	//	HTML
+ char *msg_h_hname = "Värdnamn";	//	GD
+ char *msg_h_url   = "URL";
+@@ -272,7 +274,9 @@
+ char *msg_mtot_ms = "M&aring;natlig statistik f&ouml;r";
+ char *msg_mtot_th = "Totalt antal tr&auml;ffar";
+ char *msg_mtot_tf = "Totalt antal filer";
+-char *msg_mtot_tx = "Totalt antal kilobytes";
++char *msg_mtot_tx = "Totalt antal kB filer";
++char *msg_mtot_ix = "Totalt antal kB in";
++char *msg_mtot_ox = "Totalt antal kB ut";
+ char *msg_mtot_us = "Totalt antal unika klientadresser";
+ char *msg_mtot_ur = "Totalt antal unika h&auml;nvisningar";
+ char *msg_mtot_ua = "Totalt antal unika klienttyper";
+@@ -284,7 +288,9 @@
+ char *msg_mtot_mpd= "Sidor per dag";
+ char *msg_mtot_msd= "Klientadresser per dag";
+ char *msg_mtot_mvd= "Bes&ouml;k per dag";
+-char *msg_mtot_mkd= "Kilobytes per dag";
++char *msg_mtot_mkd= "kB Filer per dag";
++char *msg_mtot_ikd= "kB In per dag";
++char *msg_mtot_okd= "kB Ut per dag";
+ char *msg_mtot_rc = "Tr&auml;ffar sorterade efter svarskod";
+ 
+ /* daily total table */
+Index: webalizer/lang/webalizer_lang.turkish
+===================================================================
+--- webalizer.orig/lang/webalizer_lang.turkish	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/lang/webalizer_lang.turkish	2011-04-18 23:56:44.000000000 +0200
+@@ -220,7 +220,9 @@
+ char *msg_h_visits= "Ziyaret";
+ char *msg_h_files = "Dosya";
+ char *msg_h_sites = "Istemci";
+-char *msg_h_xfer  = "KBayt'a Gore";
++char *msg_h_xfer  = "kB D";
++char *msg_h_ixfer = "kB In";
++char *msg_h_oxfer = "kB Out";
+ char *msg_h_hname = "Makine Adi";
+ char *msg_h_url   = "URL";
+ char *msg_h_agent = "Kullanici Ajani";
+@@ -246,7 +248,9 @@
+ char *msg_mtot_ms = "Aylik Istatistikler:";
+ char *msg_mtot_th = "Toplam HIT'ler";
+ char *msg_mtot_tf = "Toplam Dosyalar";
+-char *msg_mtot_tx = "Toplam KBaytlar";
++char *msg_mtot_tx = "Toplam kB Dosyalar";
++char *msg_mtot_ix = "Toplam kB In";
++char *msg_mtot_ox = "Toplam kB Out";
+ char *msg_mtot_us = "Toplam Ayni Istemciler";
+ char *msg_mtot_ur = "Toplam Ayni Referanslar";
+ char *msg_mtot_ua = "Toplam Ayni Kullanici Ajanlari";
+@@ -258,7 +262,9 @@
+ char *msg_mtot_mpd= "Gunluk Sayfalar";
+ char *msg_mtot_msd= "Gunluk Istemciler";
+ char *msg_mtot_mvd= "Gunluk Ziyaretler";
+-char *msg_mtot_mkd= "Gunluk KBaytlar";
++char *msg_mtot_mkd= "Gunluk kB Dosyalar";
++char *msg_mtot_ikd= "Gunluk kB In";
++char *msg_mtot_okd= "Gunluk kB Out";
+ char *msg_mtot_rc = "Cevap Koduna Gore HIT";
+ 
+ /* daily total table */
+Index: webalizer/lang/webalizer_lang.ukrainian
+===================================================================
+--- webalizer.orig/lang/webalizer_lang.ukrainian	2011-04-18 23:54:39.000000000 +0200
++++ webalizer/lang/webalizer_lang.ukrainian	2011-04-18 23:56:44.000000000 +0200
+@@ -224,7 +224,9 @@
+ char *msg_h_visits= "×¦Ä×¦Ä.";
+ char *msg_h_files = "ÆÁÊÌ¦×";
+ char *msg_h_sites = "ÓÁÊÔ¦×";
+-char *msg_h_xfer  = "ëâÁÊÔ";
++char *msg_h_xfer  = "kB Æ";
++char *msg_h_ixfer = "kB In";
++char *msg_h_oxfer = "kB Out";
+ char *msg_h_hname = "¦Í'Ñ ÈÏÓÔÁ";
+ char *msg_h_url   = "URL";
+ char *msg_h_agent = "ÁÇÅÎÔ ËÏÒÉÓÔÕ×ÁÞÁ";
+@@ -251,6 +253,8 @@
+ char *msg_mtot_th = "÷ÓØÏÇÏ ÚÁÐÉÔ¦×";
+ char *msg_mtot_tf = "÷ÓØÏÇÏ ÆÁÊÌ¦×";
+ char *msg_mtot_tx = "÷ÓØÏÇÏ ëâÁÊÔ";
++char *msg_mtot_ix = "÷ÓØÏÇÏ ëâÁÊÔ In";
++char *msg_mtot_ox = "÷ÓØÏÇÏ ëâÁÊÔ Out";
+ char *msg_mtot_us = "÷ÓØÏÇÏ ÕÎ¦ËÁÌØÎÉÈ ÓÁÊÔ¦×";
+ char *msg_mtot_ur = "÷ÓØÏÇÏ ÕÎ¦ËÁÌØÎÉÈ ÐÏÓÉÌÁÎØ";
+ char *msg_mtot_ua = "÷ÓØÏÇÏ ÕÎ¦ËÁÌØÎÉÈ ÁÇÅÎÔ¦× ËÏÒÉÓÔÕ×ÁÞÁ";
+@@ -262,7 +266,9 @@
+ char *msg_mtot_mpd= "óÔÏÒ¦ÎÏË ÚÁ ÄÅÎØ";
+ char *msg_mtot_msd= "Sites per Day";
+ char *msg_mtot_mvd= "÷¦Ä×¦ÄÕ×ÁÎØ ÚÁ ÄÅÎØ";
+-char *msg_mtot_mkd= "KâÁÊÔ ÚÁ ÄÅÎØ";
++char *msg_mtot_mkd= "KâÁÊÔ æÁÊÌ¦× ÚÁ ÄÅÎØ";
++char *msg_mtot_ikd= "KâÁÊÔ In ÚÁ ÄÅÎØ";
++char *msg_mtot_okd= "KâÁÊÔ Out ÚÁ ÄÅÎØ";
+ char *msg_mtot_rc = "ú×ÅÒÔÁÎØ ÚÁ ËÏÄÏÍ ×¦ÄÐÏ×¦Ä¦";
+ 
+ /* daily total table */
+Index: webalizer/output.c
+===================================================================
+--- webalizer.orig/output.c	2011-04-18 23:56:42.000000000 +0200
++++ webalizer/output.c	2011-04-18 23:56:44.000000000 +0200
+@@ -308,8 +308,10 @@
+                       tm_file,             /* data 2 (files)    */
+                       tm_site,             /* data 3 (sites)    */
+                       tm_xfer,             /* data 4 (kbytes)   */
+-                      tm_page,             /* data 5 (pages)    */
+-                      tm_visit);           /* data 6 (visits)   */
++                      tm_ixfer,            /* data 5 (kbytes)   */
++                      tm_oxfer,            /* data 6 (kbytes)   */
++                      tm_page,             /* data 7 (pages)    */
++                      tm_visit);           /* data 8 (visits)   */
+    }
+ 
+    if (hourly_graph)
+@@ -507,7 +509,7 @@
+ {
+    int i,days_in_month;
+    u_int64_t max_files=0,max_hits=0,max_visits=0,max_pages=0,max_sites=0;
+-   double max_xfer=0.0;
++   double max_xfer=0.0,max_ixfer=0.0,max_oxfer=0.0;
+ 
+    days_in_month=(l_day-f_day)+1;
+    for (i=0;i<31;i++)
+@@ -518,6 +520,8 @@
+       if (tm_visit[i]>max_visits) max_visits= tm_visit[i];
+       if (tm_site[i]>max_sites)   max_sites = tm_site[i];
+       if (tm_xfer[i]>max_xfer)    max_xfer  = tm_xfer[i];
++      if (tm_ixfer[i]>max_ixfer)  max_ixfer = tm_ixfer[i];
++      if (tm_oxfer[i]>max_oxfer)  max_oxfer = tm_oxfer[i];
+    }
+ 
+    fprintf(out_fp,"<TABLE WIDTH=510 BORDER=2 CELLSPACING=1 CELLPADDING=1>\n");
+@@ -545,6 +549,12 @@
+    fprintf(out_fp,"<TR><TD WIDTH=380><FONT SIZE=\"-1\">%s</FONT></TD>\n"     \
+       "<TD ALIGN=right COLSPAN=2><FONT SIZE=\"-1\"><B>%.0f</B>"              \
+       "</FONT></TD></TR>\n",msg_mtot_tx,t_xfer/1024);
++   fprintf(out_fp,"<TR><TD WIDTH=380><FONT SIZE=\"-1\">%s</FONT></TD>\n"     \
++      "<TD ALIGN=right COLSPAN=2><FONT SIZE=\"-1\"><B>%.0f</B>"              \
++      "</FONT></TD></TR>\n",msg_mtot_ix,t_ixfer/1024);
++   fprintf(out_fp,"<TR><TD WIDTH=380><FONT SIZE=\"-1\">%s</FONT></TD>\n"     \
++      "<TD ALIGN=right COLSPAN=2><FONT SIZE=\"-1\"><B>%.0f</B>"              \
++      "</FONT></TD></TR>\n",msg_mtot_ox,t_oxfer/1024);
+    fprintf(out_fp,"<TR><TH HEIGHT=4></TH></TR>\n");
+    /**********************************************/
+    /* Unique Sites */
+@@ -629,6 +639,18 @@
+       "<TD WIDTH=65 ALIGN=right><FONT SIZE=-1><B>%.0f</B>"                   \
+       "</FONT></TD></TR>\n",msg_mtot_mkd,
+       (t_xfer/1024)/days_in_month,max_xfer/1024);
++   fprintf(out_fp,"<TR>"                                                     \
++      "<TD><FONT SIZE=\"-1\">%s</FONT></TD>\n"                               \
++      "<TD ALIGN=right WIDTH=65><FONT SIZE=\"-1\"><B>%.0f</B></FONT></TD>\n" \
++      "<TD WIDTH=65 ALIGN=right><FONT SIZE=-1><B>%.0f</B>"                   \
++      "</FONT></TD></TR>\n",msg_mtot_ikd,
++      (t_ixfer/1024)/days_in_month,max_ixfer/1024);
++   fprintf(out_fp,"<TR>"                                                     \
++      "<TD><FONT SIZE=\"-1\">%s</FONT></TD>\n"                               \
++      "<TD ALIGN=right WIDTH=65><FONT SIZE=\"-1\"><B>%.0f</B></FONT></TD>\n" \
++      "<TD WIDTH=65 ALIGN=right><FONT SIZE=-1><B>%.0f</B>"                   \
++      "</FONT></TD></TR>\n",msg_mtot_okd,
++      (t_oxfer/1024)/days_in_month,max_oxfer/1024);
+    fprintf(out_fp,"<TR><TH HEIGHT=4></TH></TR>\n");
+    /**********************************************/
+    /* response code totals */
+@@ -662,7 +684,7 @@
+    fprintf(out_fp,"<TABLE WIDTH=510 BORDER=2 CELLSPACING=1 CELLPADDING=1>\n");
+    fprintf(out_fp,"<TR><TH HEIGHT=4></TH></TR>\n");
+    /* Daily statistics for ... */
+-   fprintf(out_fp,"<TR><TH BGCOLOR=\"%s\" COLSPAN=13 ALIGN=center>"          \
++   fprintf(out_fp,"<TR><TH BGCOLOR=\"%s\" COLSPAN=17 ALIGN=center>"          \
+            "%s %s %d</TH></TR>\n",
+            GREY,msg_dtot_ds,l_month[cur_month-1], cur_year);
+    fprintf(out_fp,"<TR><TH HEIGHT=4></TH></TR>\n");
+@@ -679,6 +701,10 @@
+                   "<TH ALIGN=center BGCOLOR=\"%s\" COLSPAN=2>"               \
+                   "<FONT SIZE=\"-1\">%s</FONT></TH>\n"                       \
+                   "<TH ALIGN=center BGCOLOR=\"%s\" COLSPAN=2>"               \
++                  "<FONT SIZE=\"-1\">%s</FONT></TH>\n"                       \
++                  "<TH ALIGN=center BGCOLOR=\"%s\" COLSPAN=2>"               \
++                  "<FONT SIZE=\"-1\">%s</FONT></TH>\n"                       \
++                  "<TH ALIGN=center BGCOLOR=\"%s\" COLSPAN=2>"               \
+                   "<FONT SIZE=\"-1\">%s</FONT></TH></TR>\n",
+                   GREY,       msg_h_day,
+                   HITCOLOR,   msg_h_hits,
+@@ -686,7 +712,9 @@
+                   PAGECOLOR,  msg_h_pages,
+                   VISITCOLOR, msg_h_visits,
+                   SITECOLOR,  msg_h_sites,
+-                  KBYTECOLOR, msg_h_xfer);
++                  KBYTECOLOR, msg_h_xfer,
++                  LTBLUE,  msg_h_ixfer,
++                  GREEN,   msg_h_oxfer);
+    fprintf(out_fp,"<TR><TH HEIGHT=4></TH></TR>\n");
+ 
+    /* skip beginning blank days in a month */
+@@ -722,8 +750,16 @@
+               tm_site[i],PCENT(tm_site[i],t_site));
+       fprintf(out_fp,"<TD ALIGN=right>"                                      \
+               "<FONT SIZE=\"-1\"><B>%.0f</B></FONT></TD>\n"                  \
+-              "<TD ALIGN=right><FONT SIZE=\"-2\">%3.02f%%</FONT></TD></TR>\n",
++              "<TD ALIGN=right><FONT SIZE=\"-2\">%3.02f%%</FONT></TD>\n",
+               tm_xfer[i]/1024,PCENT(tm_xfer[i],t_xfer));
++      fprintf(out_fp,"<TD ALIGN=right>"                                      \
++              "<FONT SIZE=\"-1\"><B>%.0f</B></FONT></TD>\n"                  \
++              "<TD ALIGN=right><FONT SIZE=\"-2\">%3.02f%%</FONT></TD>\n",
++              tm_ixfer[i]/1024,PCENT(tm_ixfer[i],t_ixfer));
++      fprintf(out_fp,"<TD ALIGN=right>"                                      \
++              "<FONT SIZE=\"-1\"><B>%.0f</B></FONT></TD>\n"                  \
++              "<TD ALIGN=right><FONT SIZE=\"-2\">%3.02f%%</FONT></TD></TR>\n",
++              tm_oxfer[i]/1024,PCENT(tm_oxfer[i],t_oxfer));
+    }
+    fprintf(out_fp,"<TR><TH HEIGHT=4></TH></TR>\n");
+    fprintf(out_fp,"</TABLE>\n");
+@@ -738,14 +774,14 @@
+ {
+    int       i,days_in_month;
+    u_int64_t avg_file=0;
+-   double    avg_xfer=0.0;
++   double    avg_xfer=0.0,avg_ixfer=0.0,avg_oxfer=0.0;
+ 
+    days_in_month=(l_day-f_day)+1;
+ 
+    /* Hourly stats */
+    fprintf(out_fp,"<TABLE WIDTH=510 BORDER=2 CELLSPACING=1 CELLPADDING=1>\n");
+    fprintf(out_fp,"<TR><TH HEIGHT=4></TH></TR>\n");
+-   fprintf(out_fp,"<TR><TH BGCOLOR=\"%s\" COLSPAN=13 ALIGN=center>"\
++   fprintf(out_fp,"<TR><TH BGCOLOR=\"%s\" COLSPAN=19 ALIGN=center>"\
+            "%s %s %d</TH></TR>\n",
+            GREY,msg_htot_hs,l_month[cur_month-1], cur_year);
+    fprintf(out_fp,"<TR><TH HEIGHT=4></TH></TR>\n");
+@@ -758,12 +794,18 @@
+                   "<TH ALIGN=center BGCOLOR=\"%s\" COLSPAN=3>"     \
+                   "<FONT SIZE=\"-1\">%s</FONT></TH>\n"             \
+                   "<TH ALIGN=center BGCOLOR=\"%s\" COLSPAN=3>"     \
++                  "<FONT SIZE=\"-1\">%s</FONT></TH>\n"             \
++                  "<TH ALIGN=center BGCOLOR=\"%s\" COLSPAN=3>"     \
++                  "<FONT SIZE=\"-1\">%s</FONT></TH>\n"             \
++                  "<TH ALIGN=center BGCOLOR=\"%s\" COLSPAN=3>"     \
+                   "<FONT SIZE=\"-1\">%s</FONT></TH></TR>\n",
+                   GREY,       msg_h_hour,
+                   HITCOLOR,   msg_h_hits,
+                   FILECOLOR,  msg_h_files,
+                   PAGECOLOR,  msg_h_pages,
+-                  KBYTECOLOR, msg_h_xfer);
++                  KBYTECOLOR, msg_h_xfer,
++                  LTBLUE,  msg_h_ixfer,
++                  GREEN,   msg_h_oxfer);
+    fprintf(out_fp,"<TR><TH ALIGN=center BGCOLOR=\"%s\">"           \
+                   "<FONT SIZE=\"-2\">%s</FONT></TH>\n"             \
+                   "<TH ALIGN=center BGCOLOR=\"%s\" COLSPAN=2>"     \
+@@ -782,8 +824,18 @@
+    fprintf(out_fp,"<TH ALIGN=center BGCOLOR=\"%s\">"               \
+                   "<FONT SIZE=\"-2\">%s</FONT></TH>\n"             \
+                   "<TH ALIGN=center BGCOLOR=\"%s\" COLSPAN=2>"     \
+-                  "<FONT SIZE=\"-2\">%s</FONT></TH></TR>\n",
++                  "<FONT SIZE=\"-2\">%s</FONT></TH>\n",
+                   KBYTECOLOR, msg_h_avg, KBYTECOLOR, msg_h_total);
++   fprintf(out_fp,"<TH ALIGN=center BGCOLOR=\"%s\">"               \
++                  "<FONT SIZE=\"-2\">%s</FONT></TH>\n"             \
++                  "<TH ALIGN=center BGCOLOR=\"%s\" COLSPAN=2>"     \
++                  "<FONT SIZE=\"-2\">%s</FONT></TH>\n",
++                  LTBLUE, msg_h_avg, LTBLUE, msg_h_total);
++   fprintf(out_fp,"<TH ALIGN=center BGCOLOR=\"%s\">"               \
++                  "<FONT SIZE=\"-2\">%s</FONT></TH>\n"             \
++                  "<TH ALIGN=center BGCOLOR=\"%s\" COLSPAN=2>"     \
++                  "<FONT SIZE=\"-2\">%s</FONT></TH></TR>\n",
++                  GREEN, msg_h_avg, GREEN, msg_h_total);
+ 
+    fprintf(out_fp,"<TR><TH HEIGHT=4></TH></TR>\n");
+    for (i=0;i<24;i++)
+@@ -811,11 +863,25 @@
+       fprintf(out_fp,
+          "<TD ALIGN=right><FONT SIZE=\"-1\"><B>%.0f</B></FONT></TD>\n" \
+          "<TD ALIGN=right><FONT SIZE=\"-1\"><B>%.0f</B></FONT></TD>\n" \
+-         "<TD ALIGN=right><FONT SIZE=\"-2\">%3.02f%%</FONT></TD></TR>\n",
++         "<TD ALIGN=right><FONT SIZE=\"-2\">%3.02f%%</FONT></TD>\n",
+          (th_xfer[i]/days_in_month)/1024,th_xfer[i]/1024,
+          PCENT(th_xfer[i],t_xfer));
++      fprintf(out_fp,
++         "<TD ALIGN=right><FONT SIZE=\"-1\"><B>%.0f</B></FONT></TD>\n" \
++         "<TD ALIGN=right><FONT SIZE=\"-1\"><B>%.0f</B></FONT></TD>\n" \
++         "<TD ALIGN=right><FONT SIZE=\"-2\">%3.02f%%</FONT></TD>\n",
++         (th_ixfer[i]/days_in_month)/1024,th_ixfer[i]/1024,
++         PCENT(th_ixfer[i],t_ixfer));
++      fprintf(out_fp,
++         "<TD ALIGN=right><FONT SIZE=\"-1\"><B>%.0f</B></FONT></TD>\n" \
++         "<TD ALIGN=right><FONT SIZE=\"-1\"><B>%.0f</B></FONT></TD>\n" \
++         "<TD ALIGN=right><FONT SIZE=\"-2\">%3.02f%%</FONT></TD></TR>\n",
++         (th_oxfer[i]/days_in_month)/1024,th_oxfer[i]/1024,
++         PCENT(th_oxfer[i],t_oxfer));
+       avg_file += th_file[i]/days_in_month;
+-      avg_xfer+= (th_xfer[i]/days_in_month)/1024;
++      avg_xfer += (th_xfer[i]/days_in_month)/1024;
++      avg_ixfer+= (th_ixfer[i]/days_in_month)/1024;
++      avg_oxfer+= (th_oxfer[i]/days_in_month)/1024;
+    }
+    fprintf(out_fp,"<TR><TH HEIGHT=4></TH></TR>\n");
+    fprintf(out_fp,"</TABLE>\n<P>\n");
+@@ -853,11 +919,11 @@
+ 
+    fprintf(out_fp,"<TABLE WIDTH=510 BORDER=2 CELLSPACING=1 CELLPADDING=1>\n");
+    fprintf(out_fp,"<TR><TH HEIGHT=4></TH></TR>\n");
+-   if (flag) fprintf(out_fp,"<TR><TH BGCOLOR=\"%s\" ALIGN=CENTER COLSPAN=10>" \
++   if (flag) fprintf(out_fp,"<TR><TH BGCOLOR=\"%s\" ALIGN=CENTER COLSPAN=14>" \
+            "%s %llu %s %llu %s %s %s</TH></TR>\n",
+            GREY, msg_top_top,tot_num,msg_top_of,
+            t_site,msg_top_s,msg_h_by,msg_h_xfer);
+-   else      fprintf(out_fp,"<TR><TH BGCOLOR=\"%s\" ALIGN=CENTER COLSPAN=10>" \
++   else      fprintf(out_fp,"<TR><TH BGCOLOR=\"%s\" ALIGN=CENTER COLSPAN=14>" \
+            "%s %llu %s %llu %s</TH></TR>\n",
+            GREY,msg_top_top, tot_num, msg_top_of, t_site, msg_top_s);
+    fprintf(out_fp,"<TR><TH HEIGHT=4></TH></TR>\n");
+@@ -870,6 +936,10 @@
+    fprintf(out_fp,"<TH BGCOLOR=\"%s\" ALIGN=center COLSPAN=2>"              \
+           "<FONT SIZE=\"-1\">%s</FONT></TH>\n",KBYTECOLOR,msg_h_xfer);
+    fprintf(out_fp,"<TH BGCOLOR=\"%s\" ALIGN=center COLSPAN=2>"              \
++          "<FONT SIZE=\"-1\">%s</FONT></TH>\n",LTBLUE,msg_h_ixfer);
++   fprintf(out_fp,"<TH BGCOLOR=\"%s\" ALIGN=center COLSPAN=2>"              \
++          "<FONT SIZE=\"-1\">%s</FONT></TH>\n",GREEN,msg_h_oxfer);
++   fprintf(out_fp,"<TH BGCOLOR=\"%s\" ALIGN=center COLSPAN=2>"              \
+           "<FONT SIZE=\"-1\">%s</FONT></TH>\n",VISITCOLOR,msg_h_visits);
+    fprintf(out_fp,"<TH BGCOLOR=\"%s\" ALIGN=center>"                        \
+           "<FONT SIZE=\"-1\">%s</FONT></TH></TR>\n",MISCCOLOR,msg_h_hname);
+@@ -894,13 +964,19 @@
+               "<TD ALIGN=right><FONT SIZE=\"-2\">%3.02f%%</FONT></TD>\n"    \
+               "<TD ALIGN=right><FONT SIZE=\"-1\"><B>%.0f</B></FONT></TD>\n" \
+               "<TD ALIGN=right><FONT SIZE=\"-2\">%3.02f%%</FONT></TD>\n"    \
+-              "<TD ALIGN=right><FONT SIZE=\"-1\"><B>%llu</B></FONT></TD>\n" \
++              "<TD ALIGN=right><FONT SIZE=\"-1\"><B>%.0f</B></FONT></TD>\n" \
++              "<TD ALIGN=right><FONT SIZE=\"-2\">%3.02f%%</FONT></TD>\n"    \
++              "<TD ALIGN=right><FONT SIZE=\"-1\"><B>%.0f</B></FONT></TD>\n" \
++              "<TD ALIGN=right><FONT SIZE=\"-2\">%3.02f%%</FONT></TD>\n"    \
++               "<TD ALIGN=right><FONT SIZE=\"-1\"><B>%llu</B></FONT></TD>\n" \
+               "<TD ALIGN=right><FONT SIZE=\"-2\">%3.02f%%</FONT></TD>\n"    \
+               "<TD ALIGN=left NOWRAP><FONT SIZE=\"-1\">",
+               i+1,hptr->count,
+               (t_hit==0)?0:((float)hptr->count/t_hit)*100.0,hptr->files,
+               (t_file==0)?0:((float)hptr->files/t_file)*100.0,hptr->xfer/1024,
+-              (t_xfer==0)?0:((float)hptr->xfer/t_xfer)*100.0,hptr->visit,
++              (t_xfer==0)?0:((float)hptr->xfer/t_xfer)*100.0,hptr->ixfer/1024,
++              (t_ixfer==0)?0:((float)hptr->ixfer/t_ixfer)*100.0,hptr->oxfer/1024,
++              (t_oxfer==0)?0:((float)hptr->oxfer/t_oxfer)*100.0,hptr->visit,
+               (t_visit==0)?0:((float)hptr->visit/t_visit)*100.0);
+ 
+          if ((hptr->flag==OBJ_GRP)&&hlite_groups)
+@@ -921,7 +997,7 @@
+          if (all_sites_page(h_reg, h_grp))
+          {
+             fprintf(out_fp,"<TR BGCOLOR=\"%s\">",GRPCOLOR);
+-            fprintf(out_fp,"<TD COLSPAN=10 ALIGN=\"center\">\n");
++            fprintf(out_fp,"<TD COLSPAN=14 ALIGN=\"center\">\n");
+             fprintf(out_fp,"<FONT SIZE=\"-1\">");
+             fprintf(out_fp,"<A HREF=\"./site_%04d%02d.%s\">",
+                     cur_year,cur_month,html_ext);
+@@ -958,9 +1034,12 @@
+ 
+    fprintf(out_fp,"<FONT SIZE=\"-1\"></CENTER><PRE>\n");
+ 
+-   fprintf(out_fp," %12s      %12s      %12s      %12s      %s\n",
+-           msg_h_hits, msg_h_files, msg_h_xfer, msg_h_visits, msg_h_hname);
++   fprintf(out_fp," %12s      %12s      %12s      %12s      %12s"          \
++                  "      %12s      %s\n",
++           msg_h_hits, msg_h_files, msg_h_xfer, msg_h_ixfer, msg_h_oxfer,
++           msg_h_visits, msg_h_hname);
+    fprintf(out_fp,"----------------  ----------------  ----------------  " \
++                  "----------------  ----------------  "                   \
+                   "----------------  --------------------\n\n");
+ 
+    /* Do groups first (if any) */
+@@ -972,11 +1051,13 @@
+       {
+          fprintf(out_fp,
+             "%-8llu %6.02f%%  %8llu %6.02f%%  %8.0f %6.02f%%  "            \
+-            "%8llu %6.02f%%  %s\n",
++            "%8.0f %6.02f%%  %8.0f %6.02f%%  %8llu %6.02f%%  %s\n",
+             hptr->count,
+             (t_hit==0)?0:((float)hptr->count/t_hit)*100.0,hptr->files,
+             (t_file==0)?0:((float)hptr->files/t_file)*100.0,hptr->xfer/1024,
+-            (t_xfer==0)?0:((float)hptr->xfer/t_xfer)*100.0,hptr->visit,
++            (t_xfer==0)?0:((float)hptr->xfer/t_xfer)*100.0,hptr->ixfer/1024,
++            (t_ixfer==0)?0:((float)hptr->ixfer/t_ixfer)*100.0,hptr->oxfer/1024,
++            (t_oxfer==0)?0:((float)hptr->oxfer/t_oxfer)*100.0,hptr->visit,
+             (t_visit==0)?0:((float)hptr->visit/t_visit)*100.0,
+             hptr->string);
+          h_grp--;
+@@ -994,11 +1075,13 @@
+       {
+          fprintf(out_fp,
+             "%-8llu %6.02f%%  %8llu %6.02f%%  %8.0f %6.02f%%  "            \
+-            "%8llu %6.02f%%  %s\n",
++            "%8.0f %6.02f%%  %8.0f %6.02f%%  %8llu %6.02f%%  %s\n",
+             hptr->count,
+             (t_hit==0)?0:((float)hptr->count/t_hit)*100.0,hptr->files,
+             (t_file==0)?0:((float)hptr->files/t_file)*100.0,hptr->xfer/1024,
+-            (t_xfer==0)?0:((float)hptr->xfer/t_xfer)*100.0,hptr->visit,
++            (t_xfer==0)?0:((float)hptr->xfer/t_xfer)*100.0,hptr->ixfer/1024,
++            (t_ixfer==0)?0:((float)hptr->ixfer/t_ixfer)*100.0,hptr->oxfer/1024,
++            (t_oxfer==0)?0:((float)hptr->oxfer/t_oxfer)*100.0,hptr->visit,
+             (t_visit==0)?0:((float)hptr->visit/t_visit)*100.0,
+             hptr->string);
+          h_reg--;
+@@ -1042,11 +1125,11 @@
+ 
+    fprintf(out_fp,"<TABLE WIDTH=510 BORDER=2 CELLSPACING=1 CELLPADDING=1>\n");
+    fprintf(out_fp,"<TR><TH HEIGHT=4></TH></TR>\n");
+-   if (flag) fprintf(out_fp,"<TR><TH BGCOLOR=\"%s\" ALIGN=CENTER COLSPAN=6>"  \
++   if (flag) fprintf(out_fp,"<TR><TH BGCOLOR=\"%s\" ALIGN=CENTER COLSPAN=10>"  \
+            "%s %llu %s %llu %s %s %s</TH></TR>\n",
+            GREY,msg_top_top,tot_num,msg_top_of,
+            t_url,msg_top_u,msg_h_by,msg_h_xfer);
+-   else fprintf(out_fp,"<TR><TH BGCOLOR=\"%s\" ALIGN=CENTER COLSPAN=6>"   \
++   else fprintf(out_fp,"<TR><TH BGCOLOR=\"%s\" ALIGN=CENTER COLSPAN=10>"   \
+            "%s %llu %s %llu %s</TH></TR>\n",
+            GREY,msg_top_top,tot_num,msg_top_of,t_url,msg_top_u);
+    fprintf(out_fp,"<TR><TH HEIGHT=4></TH></TR>\n");
+@@ -1058,6 +1141,12 @@
+    fprintf(out_fp,"<TH BGCOLOR=\"%s\" ALIGN=center COLSPAN=2>"            \
+                   "<FONT SIZE=\"-1\">%s</FONT></TH>\n",
+                   KBYTECOLOR,msg_h_xfer);
++   fprintf(out_fp,"<TH BGCOLOR=\"%s\" ALIGN=center COLSPAN=2>"            \
++                  "<FONT SIZE=\"-1\">%s</FONT></TH>\n",
++                  LTBLUE,msg_h_ixfer);
++   fprintf(out_fp,"<TH BGCOLOR=\"%s\" ALIGN=center COLSPAN=2>"            \
++                  "<FONT SIZE=\"-1\">%s</FONT></TH>\n",
++                  GREEN,msg_h_oxfer);
+    fprintf(out_fp,"<TH BGCOLOR=\"%s\" ALIGN=center>"                      \
+                   "<FONT SIZE=\"-1\">%s</FONT></TH></TR>\n",
+                   MISCCOLOR,msg_h_url);
+@@ -1080,11 +1169,19 @@
+             "<TD ALIGN=right><FONT SIZE=\"-2\">%3.02f%%</FONT></TD>\n"   \
+             "<TD ALIGN=right><FONT SIZE=\"-1\"><B>%.0f</B></FONT></TD>\n"\
+             "<TD ALIGN=right><FONT SIZE=\"-2\">%3.02f%%</FONT></TD>\n"   \
++            "<TD ALIGN=right><FONT SIZE=\"-1\"><B>%.0f</B></FONT></TD>\n"\
++            "<TD ALIGN=right><FONT SIZE=\"-2\">%3.02f%%</FONT></TD>\n"   \
++            "<TD ALIGN=right><FONT SIZE=\"-1\"><B>%.0f</B></FONT></TD>\n"\
++            "<TD ALIGN=right><FONT SIZE=\"-2\">%3.02f%%</FONT></TD>\n"   \
+             "<TD ALIGN=left NOWRAP><FONT SIZE=\"-1\">",
+             i+1,uptr->count,
+             (t_hit==0)?0:((float)uptr->count/t_hit)*100.0,
+             uptr->xfer/1024,
+-            (t_xfer==0)?0:((float)uptr->xfer/t_xfer)*100.0);
++            (t_xfer==0)?0:((float)uptr->xfer/t_xfer)*100.0,
++            uptr->ixfer/1024,
++            (t_ixfer==0)?0:((float)uptr->ixfer/t_ixfer)*100.0,
++            uptr->oxfer/1024,
++            (t_oxfer==0)?0:((float)uptr->oxfer/t_oxfer)*100.0);
+ 
+          if (uptr->flag==OBJ_GRP)
+          {
+@@ -1130,7 +1227,7 @@
+          if (all_urls_page(u_reg, u_grp))
+          {
+             fprintf(out_fp,"<TR BGCOLOR=\"%s\">",GRPCOLOR);
+-            fprintf(out_fp,"<TD COLSPAN=6 ALIGN=\"center\">\n");
++            fprintf(out_fp,"<TD COLSPAN=10 ALIGN=\"center\">\n");
+             fprintf(out_fp,"<FONT SIZE=\"-1\">");
+             fprintf(out_fp,"<A HREF=\"./url_%04d%02d.%s\">",
+                     cur_year,cur_month,html_ext);
+@@ -1167,10 +1264,10 @@
+ 
+    fprintf(out_fp,"<FONT SIZE=\"-1\"></CENTER><PRE>\n");
+ 
+-   fprintf(out_fp," %12s      %12s      %s\n",
+-           msg_h_hits,msg_h_xfer,msg_h_url);
+-   fprintf(out_fp,"----------------  ----------------  " \
+-                  "--------------------\n\n");
++   fprintf(out_fp," %12s      %12s      %12s      %12s      %s\n",
++           msg_h_hits,msg_h_xfer,msg_h_ixfer,msg_h_oxfer,msg_h_url);
++   fprintf(out_fp,"----------------  ----------------  ----------------  " \
++                  "----------------  --------------------\n\n");
+ 
+    /* do groups first (if any) */
+    pointer=u_array;
+@@ -1179,11 +1276,16 @@
+       uptr=*pointer++;
+       if (uptr->flag == OBJ_GRP)
+       {
+-         fprintf(out_fp,"%-8llu %6.02f%%  %8.0f %6.02f%%  %s\n",
++         fprintf(out_fp,"%-8llu %6.02f%%  %8.0f %6.02f%%  %8.0f %6.02f%%  "  \
++                        "%8.0f %6.02f%%  %s\n",
+             uptr->count,
+             (t_hit==0)?0:((float)uptr->count/t_hit)*100.0,
+             uptr->xfer/1024,
+             (t_xfer==0)?0:((float)uptr->xfer/t_xfer)*100.0,
++            uptr->ixfer/1024,
++            (t_ixfer==0)?0:((float)uptr->ixfer/t_ixfer)*100.0,
++            uptr->oxfer/1024,
++            (t_oxfer==0)?0:((float)uptr->oxfer/t_oxfer)*100.0,
+             uptr->string);
+          u_grp--;
+       }
+@@ -1198,11 +1300,16 @@
+       uptr=*pointer++;
+       if (uptr->flag == OBJ_REG)
+       {
+-         fprintf(out_fp,"%-8llu %6.02f%%  %8.0f %6.02f%%  %s\n",
++         fprintf(out_fp,"%-8llu %6.02f%%  %8.0f %6.02f%%  %8.0f %6.02f%%  "  \
++                        "%8.0f %6.02f%%  %s\n",
+             uptr->count,
+             (t_hit==0)?0:((float)uptr->count/t_hit)*100.0,
+             uptr->xfer/1024,
+             (t_xfer==0)?0:((float)uptr->xfer/t_xfer)*100.0,
++            uptr->ixfer/1024,
++            (t_ixfer==0)?0:((float)uptr->ixfer/t_ixfer)*100.0,
++            uptr->oxfer/1024,
++            (t_oxfer==0)?0:((float)uptr->oxfer/t_oxfer)*100.0,
+             uptr->string);
+          u_reg--;
+       }
+@@ -1780,7 +1887,7 @@
+ 
+    fprintf(out_fp,"<TABLE WIDTH=510 BORDER=2 CELLSPACING=1 CELLPADDING=1>\n");
+    fprintf(out_fp,"<TR><TH HEIGHT=4></TH></TR>\n");
+-   fprintf(out_fp,"<TR><TH BGCOLOR=\"%s\" ALIGN=CENTER COLSPAN=10>" \
++   fprintf(out_fp,"<TR><TH BGCOLOR=\"%s\" ALIGN=CENTER COLSPAN=14>" \
+            "%s %llu %s %llu %s</TH></TR>\n",
+            GREY,msg_top_top, tot_num, msg_top_of, t_user, msg_top_i);
+    fprintf(out_fp,"<TR><TH HEIGHT=4></TH></TR>\n");
+@@ -1793,6 +1900,10 @@
+    fprintf(out_fp,"<TH BGCOLOR=\"%s\" ALIGN=center COLSPAN=2>"             \
+           "<FONT SIZE=\"-1\">%s</FONT></TH>\n",KBYTECOLOR,msg_h_xfer);
+    fprintf(out_fp,"<TH BGCOLOR=\"%s\" ALIGN=center COLSPAN=2>"             \
++          "<FONT SIZE=\"-1\">%s</FONT></TH>\n",LTBLUE,msg_h_ixfer);
++   fprintf(out_fp,"<TH BGCOLOR=\"%s\" ALIGN=center COLSPAN=2>"             \
++          "<FONT SIZE=\"-1\">%s</FONT></TH>\n",GREEN,msg_h_oxfer);
++   fprintf(out_fp,"<TH BGCOLOR=\"%s\" ALIGN=center COLSPAN=2>"             \
+           "<FONT SIZE=\"-1\">%s</FONT></TH>\n",VISITCOLOR,msg_h_visits);
+    fprintf(out_fp,"<TH BGCOLOR=\"%s\" ALIGN=center>"                       \
+           "<FONT SIZE=\"-1\">%s</FONT></TH></TR>\n",MISCCOLOR,msg_h_uname);
+@@ -1817,13 +1928,19 @@
+               "<TD ALIGN=right><FONT SIZE=\"-2\">%3.02f%%</FONT></TD>\n"    \
+               "<TD ALIGN=right><FONT SIZE=\"-1\"><B>%.0f</B></FONT></TD>\n" \
+               "<TD ALIGN=right><FONT SIZE=\"-2\">%3.02f%%</FONT></TD>\n"    \
++              "<TD ALIGN=right><FONT SIZE=\"-1\"><B>%.0f</B></FONT></TD>\n" \
++              "<TD ALIGN=right><FONT SIZE=\"-2\">%3.02f%%</FONT></TD>\n"    \
++              "<TD ALIGN=right><FONT SIZE=\"-1\"><B>%.0f</B></FONT></TD>\n" \
++              "<TD ALIGN=right><FONT SIZE=\"-2\">%3.02f%%</FONT></TD>\n"    \
+               "<TD ALIGN=right><FONT SIZE=\"-1\"><B>%llu</B></FONT></TD>\n" \
+               "<TD ALIGN=right><FONT SIZE=\"-2\">%3.02f%%</FONT></TD>\n"    \
+               "<TD ALIGN=left NOWRAP><FONT SIZE=\"-1\">",
+               i+1,iptr->count,
+               (t_hit==0)?0:((float)iptr->count/t_hit)*100.0,iptr->files,
+               (t_file==0)?0:((float)iptr->files/t_file)*100.0,iptr->xfer/1024,
+-              (t_xfer==0)?0:((float)iptr->xfer/t_xfer)*100.0,iptr->visit,
++              (t_xfer==0)?0:((float)iptr->xfer/t_xfer)*100.0,iptr->ixfer/1024,
++              (t_ixfer==0)?0:((float)iptr->ixfer/t_ixfer)*100.0,iptr->oxfer/1024,
++              (t_oxfer==0)?0:((float)iptr->oxfer/t_oxfer)*100.0,iptr->visit,
+               (t_visit==0)?0:((float)iptr->visit/t_visit)*100.0);
+ 
+          if ((iptr->flag==OBJ_GRP)&&hlite_groups)
+@@ -1842,7 +1959,7 @@
+       if (all_users_page(i_reg, i_grp))
+       {
+          fprintf(out_fp,"<TR BGCOLOR=\"%s\">",GRPCOLOR);
+-         fprintf(out_fp,"<TD COLSPAN=10 ALIGN=\"center\">\n");
++         fprintf(out_fp,"<TD COLSPAN=14 ALIGN=\"center\">\n");
+          fprintf(out_fp,"<FONT SIZE=\"-1\">");
+          fprintf(out_fp,"<A HREF=\"./user_%04d%02d.%s\">",
+             cur_year,cur_month,html_ext);
+@@ -1876,9 +1993,12 @@
+ 
+    fprintf(out_fp,"<FONT SIZE=\"-1\"></CENTER><PRE>\n");
+ 
+-   fprintf(out_fp," %12s      %12s      %12s      %12s      %s\n",
+-           msg_h_hits, msg_h_files, msg_h_xfer, msg_h_visits, msg_h_uname);
++   fprintf(out_fp," %12s      %12s      %12s      %12s      %12s      %12s"\
++                  "      %s\n",
++           msg_h_hits, msg_h_files, msg_h_xfer, msg_h_ixfer, msg_h_oxfer,
++           msg_h_visits, msg_h_uname);
+    fprintf(out_fp,"----------------  ----------------  ----------------  " \
++                  "----------------  ----------------  "                   \
+                   "----------------  --------------------\n\n");
+ 
+    /* Do groups first (if any) */
+@@ -1889,11 +2009,14 @@
+       if (iptr->flag == OBJ_GRP)
+       {
+          fprintf(out_fp,
+-      "%-8llu %6.02f%%  %8llu %6.02f%%  %8.0f %6.02f%%  %8llu %6.02f%%  %s\n",
++            "%-8llu %6.02f%%  %8llu %6.02f%%  %8.0f %6.02f%%  %8.0f %6.02f%%  "\
++            "%8.0f %6.02f%%  %8llu %6.02f%%  %s\n",
+             iptr->count,
+             (t_hit==0)?0:((float)iptr->count/t_hit)*100.0,iptr->files,
+             (t_file==0)?0:((float)iptr->files/t_file)*100.0,iptr->xfer/1024,
+-            (t_xfer==0)?0:((float)iptr->xfer/t_xfer)*100.0,iptr->visit,
++            (t_xfer==0)?0:((float)iptr->xfer/t_xfer)*100.0,iptr->ixfer/1024,
++            (t_ixfer==0)?0:((float)iptr->ixfer/t_ixfer)*100.0,iptr->oxfer/1024,
++            (t_oxfer==0)?0:((float)iptr->oxfer/t_oxfer)*100.0,iptr->visit,
+             (t_visit==0)?0:((float)iptr->visit/t_visit)*100.0,
+             iptr->string);
+          i_grp--;
+@@ -1910,11 +2033,14 @@
+       if (iptr->flag == OBJ_REG)
+       {
+          fprintf(out_fp,
+-      "%-8llu %6.02f%%  %8llu %6.02f%%  %8.0f %6.02f%%  %8llu %6.02f%%  %s\n",
++            "%-8llu %6.02f%%  %8llu %6.02f%%  %8.0f %6.02f%%  %8.0f %6.02f%%  "\
++            "%8.0f %6.02f%%  %8llu %6.02f%%  %s\n",
+             iptr->count,
+             (t_hit==0)?0:((float)iptr->count/t_hit)*100.0,iptr->files,
+             (t_file==0)?0:((float)iptr->files/t_file)*100.0,iptr->xfer/1024,
+-            (t_xfer==0)?0:((float)iptr->xfer/t_xfer)*100.0,iptr->visit,
++            (t_xfer==0)?0:((float)iptr->xfer/t_xfer)*100.0,iptr->ixfer/1024,
++            (t_ixfer==0)?0:((float)iptr->ixfer/t_ixfer)*100.0,iptr->oxfer/1024,
++            (t_oxfer==0)?0:((float)iptr->oxfer/t_oxfer)*100.0,iptr->visit,
+             (t_visit==0)?0:((float)iptr->visit/t_visit)*100.0,
+             iptr->string);
+          i_reg--;
+@@ -2016,6 +2142,8 @@
+                      ctry[j].count+=hptr->count;
+                      ctry[j].files+=hptr->files;
+                      ctry[j].xfer +=hptr->xfer;
++                     ctry[j].ixfer+=hptr->ixfer;
++                     ctry[j].oxfer+=hptr->oxfer;
+                      ctry_fnd=1;
+                      break;
+                   }
+@@ -2026,6 +2154,8 @@
+                ctry[0].count+=hptr->count;
+                ctry[0].files+=hptr->files;
+                ctry[0].xfer +=hptr->xfer;
++    	       ctry[0].ixfer+=hptr->ixfer;
++    	       ctry[0].oxfer+=hptr->oxfer;
+             }
+          }
+          hptr=hptr->next;
+@@ -2081,7 +2211,7 @@
+    for (i=0;i<ntop_ctrys;i++) if (top_ctrys[i]->count!=0) tot_num++;
+    fprintf(out_fp,"<TABLE WIDTH=510 BORDER=2 CELLSPACING=1 CELLPADDING=1>\n");
+    fprintf(out_fp,"<TR><TH HEIGHT=4></TH></TR>\n");
+-   fprintf(out_fp,"<TR><TH BGCOLOR=\"%s\" ALIGN=CENTER COLSPAN=8>"         \
++   fprintf(out_fp,"<TR><TH BGCOLOR=\"%s\" ALIGN=CENTER COLSPAN=12>"         \
+            "%s %d %s %d %s</TH></TR>\n",
+            GREY,msg_top_top,tot_num,msg_top_of,tot_ctry,msg_top_c);
+    fprintf(out_fp,"<TR><TH HEIGHT=4></TH></TR>\n");
+@@ -2093,6 +2223,10 @@
+           "<FONT SIZE=\"-1\">%s</FONT></TH>\n",FILECOLOR,msg_h_files);
+    fprintf(out_fp,"<TH BGCOLOR=\"%s\" ALIGN=center COLSPAN=2>"             \
+           "<FONT SIZE=\"-1\">%s</FONT></TH>\n",KBYTECOLOR,msg_h_xfer);
++   fprintf(out_fp,"<TH BGCOLOR=\"%s\" ALIGN=center COLSPAN=2>"             \
++          "<FONT SIZE=\"-1\">%s</FONT></TH>\n",LTBLUE,msg_h_ixfer);
++   fprintf(out_fp,"<TH BGCOLOR=\"%s\" ALIGN=center COLSPAN=2>"             \
++          "<FONT SIZE=\"-1\">%s</FONT></TH>\n",GREEN,msg_h_oxfer);
+    fprintf(out_fp,"<TH BGCOLOR=\"%s\" ALIGN=center>"                       \
+           "<FONT SIZE=\"-1\">%s</FONT></TH></TR>\n",MISCCOLOR,msg_h_ctry);
+    fprintf(out_fp,"<TR><TH HEIGHT=4></TH></TR>\n");
+@@ -2120,6 +2254,10 @@
+               "<TD ALIGN=right><FONT SIZE=\"-2\">%3.02f%%</FONT></TD>\n"   \
+               "<TD ALIGN=right><FONT SIZE=\"-1\"><B>%.0f</B></FONT></TD>\n"\
+               "<TD ALIGN=right><FONT SIZE=\"-2\">%3.02f%%</FONT></TD>\n"   \
++              "<TD ALIGN=right><FONT SIZE=\"-1\"><B>%.0f</B></FONT></TD>\n" \
++              "<TD ALIGN=right><FONT SIZE=\"-2\">%3.02f%%</FONT></TD>\n"   \
++              "<TD ALIGN=right><FONT SIZE=\"-1\"><B>%.0f</B></FONT></TD>\n" \
++              "<TD ALIGN=right><FONT SIZE=\"-2\">%3.02f%%</FONT></TD>\n"   \
+               "<TD ALIGN=left NOWRAP>%s<FONT SIZE=\"-1\">%s</FONT>"        \
+               "</TD></TR>\n",
+               i+1,top_ctrys[i]->count,
+@@ -2128,6 +2266,10 @@
+               (t_file==0)?0:((float)top_ctrys[i]->files/t_file)*100.0,
+               top_ctrys[i]->xfer/1024,
+               (t_xfer==0)?0:((float)top_ctrys[i]->xfer/t_xfer)*100.0,
++              top_ctrys[i]->ixfer/1024,
++              (t_ixfer==0)?0:((float)top_ctrys[i]->ixfer/t_ixfer)*100.0,
++              top_ctrys[i]->oxfer/1024,
++              (t_oxfer==0)?0:((float)top_ctrys[i]->oxfer/t_oxfer)*100.0,
+               flag_buf,top_ctrys[i]->desc);
+    }
+    fprintf(out_fp,"<TR><TH HEIGHT=4></TH></TR>\n");
+@@ -2155,8 +2297,9 @@
+    /* need a header? */
+    if (dump_header)
+    {
+-      fprintf(out_fp,"%s\t%s\t%s\t%s\t%s\n",
+-       msg_h_hits,msg_h_files,msg_h_xfer,msg_h_visits,msg_h_hname); 
++      fprintf(out_fp,"%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
++       msg_h_hits,msg_h_files,msg_h_xfer,msg_h_ixfer,msg_h_oxfer,msg_h_visits,
++       msg_h_hname); 
+    }
+ 
+    /* dump 'em */
+@@ -2167,8 +2310,9 @@
+       if (hptr->flag != OBJ_GRP)
+       {
+          fprintf(out_fp,
+-         "%llu\t%llu\t%.0f\t%llu\t%s\n",
++         "%llu\t%llu\t%.0f\t%.0f\t%.0f\t%llu\t%s\n",
+             hptr->count,hptr->files,hptr->xfer/1024,
++	    hptr->ixfer/1024,hptr->oxfer/1024,
+             hptr->visit,hptr->string);
+       }
+       cnt--;
+@@ -2198,7 +2342,8 @@
+    /* need a header? */
+    if (dump_header)
+    {
+-      fprintf(out_fp,"%s\t%s\t%s\n",msg_h_hits,msg_h_xfer,msg_h_url);
++      fprintf(out_fp,"%s\t%s\t%s\t%s\t%s\n",msg_h_hits,msg_h_xfer,msg_h_ixfer,
++                      msg_h_oxfer,msg_h_url);
+    }
+ 
+    /* dump 'em */
+@@ -2208,8 +2353,9 @@
+       uptr=*pointer++;
+       if (uptr->flag != OBJ_GRP)
+       {
+-         fprintf(out_fp,"%llu\t%.0f\t%s\n",
+-            uptr->count,uptr->xfer/1024,uptr->string);
++         fprintf(out_fp,"%llu\t%.0f\t%.0f\t%.0f\t%s\n",
++            uptr->count,uptr->xfer/1024,uptr->ixfer/1024,uptr->oxfer/1024,
++	    uptr->string);
+       }
+       cnt--;
+    }
+@@ -2316,8 +2462,9 @@
+    /* need a header? */
+    if (dump_header)
+    {
+-      fprintf(out_fp,"%s\t%s\t%s\t%s\t%s\n",
+-         msg_h_hits,msg_h_files,msg_h_xfer,msg_h_visits,msg_h_uname);
++      fprintf(out_fp,"%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
++         msg_h_hits,msg_h_files,msg_h_xfer,msg_h_ixfer,msg_h_oxfer,msg_h_visits,
++         msg_h_uname);
+    }
+ 
+    /* dump 'em */
+@@ -2328,8 +2475,9 @@
+       if (iptr->flag != OBJ_GRP)
+       {
+          fprintf(out_fp,
+-         "%llu\t%llu\t%.0f\t%llu\t%s\n",
++         "%llu\t%llu\t%.0f\t%.0f\t%.0f\t%llu\t%s\n",
+             iptr->count,iptr->files,iptr->xfer/1024,
++	    iptr->ixfer/1024,iptr->oxfer/1024,
+             iptr->visit,iptr->string);
+       }
+       cnt--;
+@@ -2391,10 +2539,14 @@
+    u_int64_t m_pages=0;
+    u_int64_t m_visits=0;
+    double    m_xfer=0.0;
++   double    m_ixfer=0.0;
++   double    m_oxfer=0.0;
+    double  gt_hit=0.0;
+    double  gt_files=0.0;
+    double  gt_pages=0.0;
+    double  gt_xfer=0.0;
++   double  gt_ixfer=0.0;
++   double  gt_oxfer=0.0;
+    double  gt_visits=0.0;
+ 
+    if (verbose>1) printf("%s\n",msg_gen_sum);
+@@ -2450,14 +2602,14 @@
+    /* month table */
+    fprintf(out_fp,"<TABLE WIDTH=600 BORDER=2 CELLSPACING=1 CELLPADDING=1>\n");
+    fprintf(out_fp,"<TR><TH HEIGHT=4></TH></TR>\n");
+-   fprintf(out_fp,"<TR><TH COLSPAN=11 BGCOLOR=\"%s\" ALIGN=center>",GREY);
++   fprintf(out_fp,"<TR><TH COLSPAN=13 BGCOLOR=\"%s\" ALIGN=center>",GREY);
+    fprintf(out_fp,"%s</TH></TR>\n",msg_main_sum);
+    fprintf(out_fp,"<TR><TH HEIGHT=4></TH></TR>\n");
+    fprintf(out_fp,"<TR><TH ALIGN=left ROWSPAN=2 BGCOLOR=\"%s\">"          \
+           "<FONT SIZE=\"-1\">%s</FONT></TH>\n",GREY,msg_h_mth);
+    fprintf(out_fp,"<TH ALIGN=center COLSPAN=4 BGCOLOR=\"%s\">"            \
+           "<FONT SIZE=\"-1\">%s</FONT></TH>\n",GREY,msg_main_da);
+-   fprintf(out_fp,"<TH ALIGN=center COLSPAN=6 BGCOLOR=\"%s\">"            \
++   fprintf(out_fp,"<TH ALIGN=center COLSPAN=8 BGCOLOR=\"%s\">"            \
+           "<FONT SIZE=\"-1\">%s</FONT></TH></TR>\n",GREY,msg_main_mt);
+    fprintf(out_fp,"<TR><TH ALIGN=center BGCOLOR=\"%s\">"                  \
+           "<FONT SIZE=\"-1\">%s</FONT></TH>\n",HITCOLOR,msg_h_hits);
+@@ -2472,6 +2624,10 @@
+    fprintf(out_fp,"<TH ALIGN=center BGCOLOR=\"%s\">"                      \
+           "<FONT SIZE=\"-1\">%s</FONT></TH>\n",KBYTECOLOR,msg_h_xfer);
+    fprintf(out_fp,"<TH ALIGN=center BGCOLOR=\"%s\">"                      \
++          "<FONT SIZE=\"-1\">%s</FONT></TH>\n",LTBLUE,msg_h_ixfer);
++   fprintf(out_fp,"<TH ALIGN=center BGCOLOR=\"%s\">"                      \
++          "<FONT SIZE=\"-1\">%s</FONT></TH>\n",GREEN,msg_h_oxfer);
++   fprintf(out_fp,"<TH ALIGN=center BGCOLOR=\"%s\">"                      \
+           "<FONT SIZE=\"-1\">%s</FONT></TH>\n",VISITCOLOR,msg_h_visits);
+    fprintf(out_fp,"<TH ALIGN=center BGCOLOR=\"%s\">"                      \
+           "<FONT SIZE=\"-1\">%s</FONT></TH>\n",PAGECOLOR,msg_h_pages);
+@@ -2501,6 +2657,10 @@
+                 GRPCOLOR,s_year);
+             fprintf(out_fp,"<TH ALIGN=\"right\" BGCOLOR=\"%s\">"       \
+                   "<FONT SIZE=\"-1\">%.0f</TH>", GRPCOLOR, m_xfer);
++               fprintf(out_fp,"<TH ALIGN=\"right\" BGCOLOR=\"%s\">"       \
++                     "<FONT SIZE=\"-1\">%.0f</TH>", GRPCOLOR, m_ixfer);
++               fprintf(out_fp,"<TH ALIGN=\"right\" BGCOLOR=\"%s\">"       \
++                     "<FONT SIZE=\"-1\">%.0f</TH>", GRPCOLOR, m_oxfer);
+             fprintf(out_fp,"<TH ALIGN=\"right\" BGCOLOR=\"%s\">"       \
+                   "<FONT SIZE=\"-1\">%0llu</TH>", GRPCOLOR, m_visits);
+             fprintf(out_fp,"<TH ALIGN=\"right\" BGCOLOR=\"%s\">"       \
+@@ -2509,13 +2669,13 @@
+                   "<FONT SIZE=\"-1\">%0llu</TH>", GRPCOLOR, m_files);
+             fprintf(out_fp,"<TH ALIGN=\"right\" BGCOLOR=\"%s\">"       \
+                   "<FONT SIZE=\"-1\">%0llu</TH>", GRPCOLOR, m_hit);
+-            m_xfer=0; m_visits=0; m_pages=0; m_files=0; m_hit=0;
++            m_xfer=0; m_ixfer=0; m_oxfer=0; m_visits=0; m_pages=0; m_files=0; m_hit=0;
+          }
+  
+          /* Year Header */
+          s_year=hist[i].year;
+          if (index_mths>16 && year_hdrs)
+-            fprintf(out_fp,"<TR><TH COLSPAN=11 BGCOLOR=\"%s\" "           \
++            fprintf(out_fp,"<TR><TH COLSPAN=13 BGCOLOR=\"%s\" "           \
+                "ALIGN=center>%04d</TH></TR>\n", GREY, s_year);
+       }
+ 
+@@ -2541,6 +2701,10 @@
+                       hist[i].site);
+       fprintf(out_fp,"<TD ALIGN=right><FONT SIZE=\"-1\">%.0f</FONT></TD>\n",
+                       hist[i].xfer);
++      fprintf(out_fp,"<TD ALIGN=right><FONT SIZE=\"-1\">%.0f</FONT></TD>\n",
++                      hist[i].ixfer);
++      fprintf(out_fp,"<TD ALIGN=right><FONT SIZE=\"-1\">%.0f</FONT></TD>\n",
++                      hist[i].oxfer);
+       fprintf(out_fp,"<TD ALIGN=right><FONT SIZE=\"-1\">%llu</FONT></TD>\n",
+                       hist[i].visit);
+       fprintf(out_fp,"<TD ALIGN=right><FONT SIZE=\"-1\">%llu</FONT></TD>\n",
+@@ -2554,12 +2718,16 @@
+       gt_files += hist[i].files;
+       gt_pages += hist[i].page;
+       gt_xfer  += hist[i].xfer;
++      gt_ixfer += hist[i].ixfer;
++      gt_oxfer += hist[i].oxfer;
+       gt_visits+= hist[i].visit;
+        m_hit   += hist[i].hit;
+        m_files += hist[i].files;
+        m_pages += hist[i].page;
+        m_visits+= hist[i].visit;
+        m_xfer  += hist[i].xfer;
++       m_ixfer += hist[i].ixfer;
++       m_oxfer += hist[i].oxfer;
+    }
+ 
+    if (index_mths>16 && year_totals)
+@@ -2569,6 +2737,10 @@
+                      GRPCOLOR,s_year);
+       fprintf(out_fp,"<TH ALIGN=\"right\" BGCOLOR=\"%s\">"       \
+                      "<FONT SIZE=\"-1\">%.0f</TH>", GRPCOLOR, m_xfer);
++         fprintf(out_fp,"<TH ALIGN=\"right\" BGCOLOR=\"%s\">"       \
++                        "<FONT SIZE=\"-1\">%.0f</TH>", GRPCOLOR, m_ixfer);
++         fprintf(out_fp,"<TH ALIGN=\"right\" BGCOLOR=\"%s\">"       \
++                        "<FONT SIZE=\"-1\">%.0f</TH>", GRPCOLOR, m_oxfer);
+       fprintf(out_fp,"<TH ALIGN=\"right\" BGCOLOR=\"%s\">"       \
+                      "<FONT SIZE=\"-1\">%0llu</TH>", GRPCOLOR, m_visits);
+       fprintf(out_fp,"<TH ALIGN=\"right\" BGCOLOR=\"%s\">"       \
+@@ -2584,6 +2756,10 @@
+    fprintf(out_fp,"<TH BGCOLOR=\"%s\" ALIGN=right>"                       \
+           "<FONT SIZE=\"-1\">%.0f</FONT></TH>\n",GREY,gt_xfer);
+    fprintf(out_fp,"<TH BGCOLOR=\"%s\" ALIGN=right>"                       \
++          "<FONT SIZE=\"-1\">%.0f</FONT></TH>\n",GREY,gt_ixfer);
++   fprintf(out_fp,"<TH BGCOLOR=\"%s\" ALIGN=right>"                       \
++          "<FONT SIZE=\"-1\">%.0f</FONT></TH>\n",GREY,gt_oxfer);
++   fprintf(out_fp,"<TH BGCOLOR=\"%s\" ALIGN=right>"                       \
+           "<FONT SIZE=\"-1\">%.0f</FONT></TH>\n",GREY,gt_visits);
+    fprintf(out_fp,"<TH BGCOLOR=\"%s\" ALIGN=right>"                       \
+           "<FONT SIZE=\"-1\">%.0f</FONT></TH>\n",GREY,gt_pages);
+Index: webalizer/parser.c
+===================================================================
+--- webalizer.orig/parser.c	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/parser.c	2011-04-18 23:56:44.000000000 +0200
+@@ -199,6 +199,9 @@
+    /* return appropriate response code */
+    log_rec.resp_code=(*(eob-2)=='i')?206:200;
+ 
++   /* don't worry about I/O bytes in FTP */
++   log_rec.ixfer_size=log_rec.oxfer_size=0;
++
+    return 1;
+ }
+ 
+@@ -365,6 +368,18 @@
+    while ( (*cp1 != '\0') && (cp1 != eos) ) *cp2++ = *cp1++;
+    *cp2 = '\0';
+ 
++   /* IN xfer size */
++   while ( (*cp1 != '\0') && (cp1 < eob) ) cp1++;
++   if (cp1 < eob) cp1++;
++   if (*cp1<'0'||*cp1>'9') log_rec.ixfer_size=0;
++   else log_rec.ixfer_size = strtoul(cp1,NULL,10);
++
++   /* OUT xfer size */
++   while ( (*cp1 != '\0') && (cp1 < eob) ) cp1++;
++   if (cp1 < eob) cp1++;
++   if (*cp1<'0'||*cp1>'9') log_rec.oxfer_size=0;
++   else log_rec.oxfer_size = strtoul(cp1,NULL,10);
++
+    return 1;     /* maybe a valid record, return with TRUE */
+ }
+ 
+@@ -501,6 +516,9 @@
+    /* strip trailing space(s) */
+    while (*cp2==' ') *cp2--='\0';
+ 
++   /* don't do this for squid */
++   log_rec.ixfer_size=log_rec.oxfer_size=0;
++
+    /* we have no interest in the remaining fields */
+    return 1;
+ }
+Index: webalizer/preserve.c
+===================================================================
+--- webalizer.orig/preserve.c	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/preserve.c	2011-04-18 23:56:44.000000000 +0200
+@@ -121,7 +121,8 @@
+          if (i>=0)
+          {
+          /* month# year# requests files sites xfer firstday lastday */
+-         numfields = sscanf(buffer,"%d %d %llu %llu %llu %lf %d %d %llu %llu",
++         numfields = sscanf(buffer,
++	               "%d %d %llu %llu %llu %lf %d %d %llu %llu %lf %lf",
+                        &hist[i].month,
+                        &hist[i].year,
+                        &hist[i].hit,
+@@ -131,7 +132,9 @@
+                        &hist[i].fday,
+                        &hist[i].lday,
+                        &hist[i].page,
+-                       &hist[i].visit);
++                       &hist[i].visit,
++                       &hist[i].ixfer,
++                       &hist[i].oxfer);
+          }
+       }
+       fclose(hist_fp);
+@@ -184,7 +187,7 @@
+ 
+       for (i=HISTSIZE-1;i>=0;i--)
+       {
+-         fprintf(hist_fp,"%d %d %llu %llu %llu %.0f %d %d %llu %llu\n",
++         fprintf(hist_fp,"%d %d %llu %llu %llu %.0f %d %d %llu %llu %.0f %.0f\n",
+                          hist[i].month,
+                          hist[i].year,
+                          hist[i].hit,
+@@ -194,7 +197,9 @@
+                          hist[i].fday,
+                          hist[i].lday,
+                          hist[i].page,
+-                         hist[i].visit);
++                         hist[i].visit,
++                         hist[i].ixfer,
++                         hist[i].oxfer);
+       }
+       /* Done, close file */
+       fclose(hist_fp);
+@@ -296,6 +301,8 @@
+       hist[i].visit = t_visit;
+       hist[i].site  = t_site;
+       hist[i].xfer  = t_xfer/1024;
++      hist[i].ixfer = t_ixfer/1024;
++      hist[i].oxfer = t_oxfer/1024;
+       hist[i].fday  = f_day;
+       hist[i].lday  = l_day;
+    }
+@@ -361,9 +368,9 @@
+    if (fputs(buffer,fp)==EOF) return 1;  /* error exit */
+ 
+    /* Monthly totals for sites, urls, etc... */
+-   sprintf(buffer,"%llu %llu %llu %llu %llu %llu %.0f %llu %llu %llu\n",
++   sprintf(buffer,"%llu %llu %llu %llu %llu %llu %.0f %llu %llu %llu %.0f %.0f\n",
+         t_hit, t_file, t_site, t_url,
+-        t_ref, t_agent, t_xfer, t_page, t_visit, t_user);
++        t_ref, t_agent, t_xfer, t_page, t_visit, t_user, t_ixfer, t_oxfer);
+    if (fputs(buffer,fp)==EOF) return 1;  /* error exit */
+ 
+    /* Daily totals for sites, urls, etc... */
+@@ -374,16 +381,17 @@
+    /* Monthly (by day) total array */
+    for (i=0;i<31;i++)
+    {
+-      sprintf(buffer,"%llu %llu %.0f %llu %llu %llu\n",
+-        tm_hit[i],tm_file[i],tm_xfer[i],tm_site[i],tm_page[i],tm_visit[i]);
++      sprintf(buffer,"%llu %llu %.0f %llu %llu %llu %.0f %.0f\n",
++        tm_hit[i],tm_file[i],tm_xfer[i],tm_site[i],
++	tm_page[i],tm_visit[i],tm_ixfer[i],tm_oxfer[i]);
+       if (fputs(buffer,fp)==EOF) return 1;  /* error exit */
+    }
+ 
+    /* Daily (by hour) total array */
+    for (i=0;i<24;i++)
+    {
+-      sprintf(buffer,"%llu %llu %.0f %llu\n",
+-        th_hit[i],th_file[i],th_xfer[i],th_page[i]);
++      sprintf(buffer,"%llu %llu %.0f %llu %.0f %.0f\n",
++        th_hit[i],th_file[i],th_xfer[i],th_page[i],th_ixfer[i],th_oxfer[i]);
+       if (fputs(buffer,fp)==EOF) return 1;  /* error exit */
+    }
+ 
+@@ -402,9 +410,11 @@
+       uptr=um_htab[i];
+       while (uptr!=NULL)
+       {
+-         snprintf(buffer,sizeof(buffer),"%s\n%d %llu %llu %.0f %llu %llu\n",
++         snprintf(buffer,sizeof(buffer),
++	          "%s\n%d %llu %llu %.0f %llu %llu %.0f %.0f\n",
+                   uptr->string, uptr->flag, uptr->count, uptr->files,
+-                  uptr->xfer, uptr->entry, uptr->exit);
++                  uptr->xfer, uptr->entry, uptr->exit,
++		  uptr->ixfer, uptr->oxfer);
+          if (fputs(buffer,fp)==EOF) return 1;
+          uptr=uptr->next;
+       }
+@@ -419,9 +429,10 @@
+       hptr=sm_htab[i];
+       while (hptr!=NULL)
+       {
+-         snprintf(buffer,sizeof(buffer),"%s\n%d %llu %llu %.0f %llu %llu\n%s\n",
++         snprintf(buffer,sizeof(buffer),"%s\n%d %llu %llu %.0f %llu %llu %.0f %.0f\n%s\n",
+                   hptr->string, hptr->flag, hptr->count, hptr->files,
+                   hptr->xfer, hptr->visit, hptr->tstamp,
++		  hptr->ixfer, hptr->oxfer,
+                   (hptr->lasturl==blank_str)?"-":hptr->lasturl);
+          if (fputs(buffer,fp)==EOF) return 1;  /* error exit */
+          hptr=hptr->next;
+@@ -436,9 +447,10 @@
+       hptr=sd_htab[i];
+       while (hptr!=NULL)
+       {
+-         snprintf(buffer,sizeof(buffer),"%s\n%d %llu %llu %.0f %llu %llu\n%s\n",
++         snprintf(buffer,sizeof(buffer),"%s\n%d %llu %llu %.0f %llu %llu %.0f %.0f\n%s\n",
+                   hptr->string, hptr->flag, hptr->count, hptr->files,
+                   hptr->xfer, hptr->visit, hptr->tstamp,
++		  hptr->ixfer, hptr->oxfer,
+                   (hptr->lasturl==blank_str)?"-":hptr->lasturl);
+          if (fputs(buffer,fp)==EOF) return 1;
+          hptr=hptr->next;
+@@ -505,9 +517,9 @@
+       iptr=im_htab[i];
+       while (iptr!=NULL)
+       {
+-         snprintf(buffer,sizeof(buffer),"%s\n%d %llu %llu %.0f %llu %llu\n",
++         snprintf(buffer,sizeof(buffer),"%s\n%d %llu %llu %.0f %llu %llu %.0f %.0f\n",
+                   iptr->string, iptr->flag, iptr->count, iptr->files,
+-              iptr->xfer, iptr->visit, iptr->tstamp);
++              iptr->xfer, iptr->visit, iptr->tstamp, iptr->ixfer, iptr->oxfer);
+          if (fputs(buffer,fp)==EOF) return 1;  /* error exit */
+          iptr=iptr->next;
+       }
+@@ -589,9 +601,10 @@
+    /* Get monthly totals */
+    if ((fgets(buffer,BUFSIZE,fp)) != NULL)
+    {
+-      sscanf(buffer,"%llu %llu %llu %llu %llu %llu %lf %llu %llu %llu",
++      sscanf(buffer,"%llu %llu %llu %llu %llu %llu %lf %llu %llu %llu %lf %lf",
+        &t_hit, &t_file, &t_site, &t_url,
+-       &t_ref, &t_agent, &t_xfer, &t_page, &t_visit, &t_user);
++       &t_ref, &t_agent, &t_xfer, &t_page, &t_visit, 
++       &t_user, &t_ixfer, &t_oxfer);
+    } else return 3;  /* error exit */
+      
+    /* Get daily totals */
+@@ -606,9 +619,9 @@
+    {
+       if ((fgets(buffer,BUFSIZE,fp)) != NULL)
+       {
+-         sscanf(buffer,"%llu %llu %lf %llu %llu %llu",
++         sscanf(buffer,"%llu %llu %lf %llu %llu %llu %lf %lf",
+           &tm_hit[i],&tm_file[i],&tm_xfer[i],&tm_site[i],&tm_page[i],
+-          &tm_visit[i]);
++          &tm_visit[i],&tm_ixfer[i],&tm_oxfer[i]);
+       } else return 5;  /* error exit */
+    }
+ 
+@@ -617,8 +630,9 @@
+    {
+       if ((fgets(buffer,BUFSIZE,fp)) != NULL)
+       {
+-         sscanf(buffer,"%llu %llu %lf %llu",
+-          &th_hit[i],&th_file[i],&th_xfer[i],&th_page[i]);
++         sscanf(buffer,"%llu %llu %lf %llu %lf %lf",
++          &th_hit[i],&th_file[i],&th_xfer[i],
++	  &th_page[i],&th_ixfer[i],&th_oxfer[i]);
+       } else return 6;  /* error exit */
+    }
+ 
+@@ -652,14 +666,15 @@
+       if (!isdigit((unsigned char)buffer[0])) return 10;  /* error exit */
+ 
+       /* load temporary node data */
+-      sscanf(buffer,"%d %llu %llu %lf %llu %llu",
++      sscanf(buffer,"%d %llu %llu %lf %llu %llu %lf %lf",
+          &t_unode.flag,&t_unode.count,
+          &t_unode.files, &t_unode.xfer,
+-         &t_unode.entry, &t_unode.exit);
++         &t_unode.entry, &t_unode.exit, &t_unode.ixfer, &t_unode.oxfer);
+ 
+       /* Good record, insert into hash table */
+       if (put_unode(tmp_buf,t_unode.flag,t_unode.count,
+-         t_unode.xfer,&ul_bogus,t_unode.entry,t_unode.exit,um_htab))
++         t_unode.xfer,t_unode.ixfer,t_unode.oxfer,&ul_bogus,t_unode.entry,
++	 t_unode.exit,um_htab))
+       {
+          if (verbose)
+          /* Error adding URL node, skipping ... */
+@@ -683,10 +698,10 @@
+       if (!isdigit((unsigned char)buffer[0])) return 8;  /* error exit */
+ 
+       /* load temporary node data */
+-      sscanf(buffer,"%d %llu %llu %lf %llu %llu",
++      sscanf(buffer,"%d %llu %llu %lf %llu %llu %lf %lf",
+          &t_hnode.flag,&t_hnode.count,
+          &t_hnode.files, &t_hnode.xfer,
+-         &t_hnode.visit, &t_hnode.tstamp);
++         &t_hnode.visit, &t_hnode.tstamp, &t_hnode.ixfer, &t_hnode.oxfer);
+ 
+       /* get last url */
+       if ((fgets(buffer,BUFSIZE,fp)) == NULL) return 8;  /* error exit */
+@@ -699,7 +714,8 @@
+ 
+       /* Good record, insert into hash table */
+       if (put_hnode(tmp_buf,t_hnode.flag,
+-         t_hnode.count,t_hnode.files,t_hnode.xfer,&ul_bogus,
++         t_hnode.count,t_hnode.files,t_hnode.xfer,t_hnode.ixfer,t_hnode.oxfer,
++         &ul_bogus,
+          t_hnode.visit+1,t_hnode.tstamp,t_hnode.lasturl,sm_htab))
+       {
+          /* Error adding host node (monthly), skipping .... */
+@@ -723,10 +739,10 @@
+       if (!isdigit((unsigned char)buffer[0])) return 9;  /* error exit */
+ 
+       /* load temporary node data */
+-      sscanf(buffer,"%d %llu %llu %lf %llu %llu",
++      sscanf(buffer,"%d %llu %llu %lf %llu %llu %lf %lf",
+           &t_hnode.flag,&t_hnode.count,
+           &t_hnode.files, &t_hnode.xfer,
+-          &t_hnode.visit, &t_hnode.tstamp);
++          &t_hnode.visit, &t_hnode.tstamp, &t_hnode.ixfer, &t_hnode.oxfer);
+ 
+       /* get last url */
+       if ((fgets(buffer,BUFSIZE,fp)) == NULL) return 9;  /* error exit */
+@@ -739,7 +755,8 @@
+ 
+       /* Good record, insert into hash table */
+       if (put_hnode(tmp_buf,t_hnode.flag,
+-         t_hnode.count,t_hnode.files,t_hnode.xfer,&ul_bogus,
++         t_hnode.count,t_hnode.files,t_hnode.xfer,t_hnode.ixfer,t_hnode.oxfer,
++         &ul_bogus,
+          t_hnode.visit+1,t_hnode.tstamp,t_hnode.lasturl,sd_htab))
+       {
+          /* Error adding host node (daily), skipping .... */
+@@ -837,14 +854,15 @@
+       if (!isdigit((unsigned char)buffer[0])) return 14;  /* error exit */
+ 
+       /* load temporary node data */
+-      sscanf(buffer,"%d %llu %llu %lf %llu %llu",
++      sscanf(buffer,"%d %llu %llu %lf %llu %llu %lf %lf",
+          &t_inode.flag,&t_inode.count,
+          &t_inode.files, &t_inode.xfer,
+-         &t_inode.visit, &t_inode.tstamp);
++         &t_inode.visit, &t_inode.tstamp, &t_inode.ixfer, &t_inode.oxfer);
+ 
+       /* Good record, insert into hash table */
+       if (put_inode(tmp_buf,t_inode.flag,
+-         t_inode.count,t_inode.files,t_inode.xfer,&ul_bogus,
++         t_inode.count,t_inode.files,t_inode.xfer,t_inode.ixfer,t_inode.oxfer,
++	 &ul_bogus,
+          t_inode.visit+1,t_inode.tstamp,im_htab))
+       {
+          if (verbose)
+Index: webalizer/preserve.h
+===================================================================
+--- webalizer.orig/preserve.h	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/preserve.h	2011-04-18 23:56:44.000000000 +0200
+@@ -21,6 +21,8 @@
+                   u_int64_t   page;           /* pages for month          */
+                   u_int64_t   visit;          /* visits for month         */
+                      double   xfer;           /* xfer amt for month       */
++                     double   ixfer;          /* ixfer amt for month      */
++                     double   oxfer;          /* oxfer amt for month      */
+                 };
+ 
+ extern struct hist_rec hist[HISTSIZE];        /* declare our hist array   */
+Index: webalizer/webalizer.c
+===================================================================
+--- webalizer.orig/webalizer.c	2011-04-18 23:54:39.000000000 +0200
++++ webalizer/webalizer.c	2011-04-18 23:56:44.000000000 +0200
+@@ -216,11 +216,15 @@
+ int        gz_log=COMP_NONE;                  /* gziped log? (0=no)       */
+ 
+ double     t_xfer=0.0;                        /* monthly total xfer value */
++double     t_ixfer=0.0;                       /* monthly total in xfer    */
++double     t_oxfer=0.0;                       /* monthly total out xfer   */
+ u_int64_t  t_hit=0,t_file=0,t_site=0,         /* monthly total vars       */
+            t_url=0,t_ref=0,t_agent=0,
+            t_page=0, t_visit=0, t_user=0;
+ 
+ double     tm_xfer[31];                       /* daily transfer totals    */
++double     tm_ixfer[31];                      /* daily in xfer totals     */
++double     tm_oxfer[31];                      /* daily out xfer totals    */
+ 
+ u_int64_t  tm_hit[31], tm_file[31],           /* daily total arrays       */
+            tm_site[31], tm_page[31],
+@@ -234,6 +238,8 @@
+            th_page[24];
+ 
+ double     th_xfer[24];
++double     th_ixfer[24];
++double     th_oxfer[24];
+ 
+ int        f_day,l_day;                       /* first/last day vars      */
+ 
+@@ -1202,7 +1208,8 @@
+          {
+             /* URL hash table */
+             if (put_unode(log_rec.url,OBJ_REG,(u_int64_t)1,
+-                log_rec.xfer_size,&t_url,(u_int64_t)0,(u_int64_t)0,um_htab))
++                log_rec.xfer_size,log_rec.ixfer_size,log_rec.oxfer_size,
++                &t_url,(u_int64_t)0,(u_int64_t)0,um_htab))
+             {
+                if (verbose)
+                /* Error adding URL node, skipping ... */
+@@ -1211,7 +1218,8 @@
+ 
+             /* ident (username) hash table */
+             if (put_inode(log_rec.ident,OBJ_REG,
+-                1,(u_int64_t)i,log_rec.xfer_size,&t_user,
++                1,(u_int64_t)i,log_rec.xfer_size,
++                log_rec.ixfer_size,log_rec.oxfer_size,&t_user,
+                 0,rec_tstamp,im_htab))
+             {
+                if (verbose)
+@@ -1233,7 +1241,8 @@
+ 
+          /* hostname (site) hash table - daily */
+          if (put_hnode(log_rec.hostname,OBJ_REG,
+-             1,(u_int64_t)i,log_rec.xfer_size,&dt_site,
++             1,(u_int64_t)i,log_rec.xfer_size,
++             log_rec.ixfer_size,log_rec.oxfer_size,&dt_site,
+              0,rec_tstamp,"",sd_htab))
+          {
+             if (verbose)
+@@ -1243,7 +1252,8 @@
+ 
+          /* hostname (site) hash table - monthly */
+          if (put_hnode(log_rec.hostname,OBJ_REG,
+-             1,(u_int64_t)i,log_rec.xfer_size,&t_site,
++             1,(u_int64_t)i,log_rec.xfer_size,
++             log_rec.ixfer_size,log_rec.oxfer_size,&t_site,
+              0,rec_tstamp,"",sm_htab))
+          {
+             if (verbose)
+@@ -1264,10 +1274,16 @@
+ 
+          /* bump monthly/daily/hourly totals        */
+          t_hit++; ht_hit++;                         /* daily/hourly hits    */
+-         t_xfer += log_rec.xfer_size;               /* total xfer size      */
+-         tm_xfer[rec_day-1] += log_rec.xfer_size;   /* daily xfer total     */
++         t_xfer  += log_rec.xfer_size;              /* total xfer size      */
++         t_ixfer += log_rec.ixfer_size;             /* total in xfer size   */
++         t_oxfer += log_rec.oxfer_size;             /* total out xfer size  */
++         tm_xfer[rec_day-1]  += log_rec.xfer_size;  /* daily xfer total     */
++         tm_ixfer[rec_day-1] += log_rec.ixfer_size; /* daily in xfer total  */
++         tm_oxfer[rec_day-1] += log_rec.oxfer_size; /* daily out xfer total */
+          tm_hit[rec_day-1]++;                       /* daily hits total     */
+          th_xfer[rec_hour] += log_rec.xfer_size;    /* hourly xfer total    */
++         th_ixfer[rec_hour] += log_rec.ixfer_size;  /* hourly in xfer total */
++         th_oxfer[rec_hour] += log_rec.oxfer_size;  /* hourly out xfer total*/
+          th_hit[rec_hour]++;                        /* hourly hits total    */
+    
+          /* if RC_OK, increase file counters */
+@@ -1297,6 +1313,7 @@
+          if ( (cp1=isinglist(group_urls,log_rec.url))!=NULL)
+          {
+             if (put_unode(cp1,OBJ_GRP,(u_int64_t)1,log_rec.xfer_size,
++                log_rec.ixfer_size,log_rec.oxfer_size,
+                 &ul_bogus,(u_int64_t)0,(u_int64_t)0,um_htab))
+             {
+                if (verbose)
+@@ -1310,7 +1327,8 @@
+          {
+             if (put_hnode(cp1,OBJ_GRP,1,
+                           (u_int64_t)(log_rec.resp_code==RC_OK)?1:0,
+-                          log_rec.xfer_size,&ul_bogus,
++                          log_rec.xfer_size,
++			  log_rec.ixfer_size,log_rec.oxfer_size,&ul_bogus,
+                           0,rec_tstamp,"",sm_htab))
+             {
+                if (verbose)
+@@ -1328,8 +1346,8 @@
+                {
+                   if (put_hnode(cp1,OBJ_GRP,1,
+                       (u_int64_t)(log_rec.resp_code==RC_OK)?1:0,
+-                      log_rec.xfer_size,&ul_bogus,
+-                      0,rec_tstamp,"",sm_htab))
++                      log_rec.xfer_size,log_rec.ixfer_size,log_rec.oxfer_size,
++                      &ul_bogus,0,rec_tstamp,"",sm_htab))
+                   {
+                      if (verbose)
+                      /* Error adding Site node, skipping ... */
+@@ -1366,7 +1384,8 @@
+          {
+             if (put_inode(cp1,OBJ_GRP,1,
+                           (u_int64_t)(log_rec.resp_code==RC_OK)?1:0,
+-                          log_rec.xfer_size,&ul_bogus,
++                          log_rec.xfer_size,
++			  log_rec.ixfer_size,log_rec.oxfer_size,&ul_bogus,
+                           0,rec_tstamp,im_htab))
+             {
+                if (verbose)
+@@ -1905,22 +1924,22 @@
+    for (i=0;i<TOTAL_RC;i++) response[i].count = 0;
+    for (i=0;i<31;i++)  /* monthly totals      */
+    {
+-    tm_xfer[i]=0.0;
++    tm_xfer[i]=tm_ixfer[i]=tm_oxfer[i]=0.0;
+     tm_hit[i]=tm_file[i]=tm_site[i]=tm_page[i]=tm_visit[i]=0;
+    }
+    for (i=0;i<24;i++)  /* hourly totals       */
+    {
+       th_hit[i]=th_file[i]=th_page[i]=0;
+-      th_xfer[i]=0.0;
++      th_xfer[i]=th_ixfer[i]=th_oxfer[i]=0.0;
+    }
+    for (i=0;ctry[i].desc;i++) /* country totals */
+    {
+       ctry[i].count=0;
+       ctry[i].files=0;
+-      ctry[i].xfer=0;
++      ctry[i].xfer=ctry[i].ixfer=ctry[i].oxfer=0;
+    }
+    t_hit=t_file=t_site=t_url=t_ref=t_agent=t_page=t_visit=t_user=0;
+-   t_xfer=0.0;
++   t_xfer=t_ixfer=t_oxfer=0.0;
+    mh_hit = dt_site = 0;
+    f_day=l_day=1;
+ }
+Index: webalizer/webalizer.h
+===================================================================
+--- webalizer.orig/webalizer.h	2011-04-18 23:54:32.000000000 +0200
++++ webalizer/webalizer.h	2011-04-18 23:56:44.000000000 +0200
+@@ -144,7 +144,9 @@
+                            char *desc;            /* TLD description      */
+                       u_int64_t count;            /* hit counter          */
+                       u_int64_t files;            /* file counter         */
+-                         double xfer; };          /* xfer amt counter     */
++                         double xfer;             /* xfer amt counter     */
++                         double ixfer;            /* in xfer amt counter  */
++                         double oxfer; };         /* out xfer amt counter */
+ 
+ typedef struct country_code *CLISTPTR;
+ 
+@@ -154,6 +156,8 @@
+                        char   url[MAXURL];        /* raw request field    */
+                         int   resp_code;          /* response code        */
+                   u_int64_t   xfer_size;          /* xfer size in bytes   */
++                  u_int64_t   ixfer_size;         /* in xfer size bytes   */
++                  u_int64_t   oxfer_size;         /* out xfer size bytes  */
+                        char   refer[MAXREF];      /* referrer             */
+                        char   agent[MAXAGENT];    /* user agent (browser) */
+                        char   srchstr[MAXSRCH];   /* search string        */
+@@ -252,11 +256,15 @@
+                  cur_min, cur_sec;
+ 
+ extern double    t_xfer;                      /* monthly total xfer value */
++extern double    t_ixfer;                     /* monthly total in xfer    */
++extern double    t_oxfer;                     /* monthly total out xfer   */
+ extern u_int64_t t_hit, t_file, t_site,       /* monthly total vars       */
+                  t_url, t_ref,  t_agent,
+                  t_page,t_visit,t_user;
+ 
+ extern double    tm_xfer[31];                 /* daily transfer totals    */
++extern double    tm_ixfer[31];                /* daily in xfer totals     */
++extern double    tm_oxfer[31];                /* daily out xfer totals    */
+ 
+ extern u_int64_t tm_hit[31], tm_file[31],     /* daily total arrays       */
+                  tm_site[31],tm_page[31],
+@@ -270,6 +278,8 @@
+                  th_page[24];
+ 
+ extern double    th_xfer[24];                 /* hourly xfer array        */
++extern double    th_ixfer[24];
++extern double    th_oxfer[24];
+ 
+ extern int       f_day,l_day;                 /* first/last day vars      */
+ extern int       gz_log;                      /* flag for zipped log      */

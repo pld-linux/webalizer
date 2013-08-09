@@ -1,0 +1,174 @@
+From: Tatsuki Sugiura <sugi@nemui.org>
+Subject: make possible to use TrueTypeFont throught libgd
+
+Origin: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=201723
+
+####################
+# graph label characters will be broken under non-C locale
+# http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=201723
+# From: Tatsuki Sugiura <sugi@nemui.org>
+#
+# GD's built-in font has no Japanese Kanji and any other multi-byte
+# characters. Graph labels can't be displayed correctly under some
+# locales which has these characters.
+# This patch make possible to use TrueTypeFont throught libgd
+# function.
+
+Index: webalizer/README.FIRST
+===================================================================
+--- webalizer.orig/README.FIRST	2011-01-08 20:59:30.000000000 +0100
++++ webalizer/README.FIRST	2011-01-08 20:59:49.000000000 +0100
+@@ -28,3 +28,18 @@
+ # with the options you prefer, build it, install it and use it.
+ ##################
+ 
++###################  SUMMARY 18_ttf_support_throught_libgd  ##########################
++
++##################
++# TrueTypeFont makes possible to replace GD built-in font by
++# specified TrueTypeFont.
++# The value can be '/path/to/your/true_type_font.file' or empty.
++# If value is empty(or commented out), GD built-in font will be used.
++# The default is empty.
++# (Supplement for Japanese:
++#  Under EUC-JP locale, TTF file must be specified which has *Windows
++#  Shift-JIS encoding*. This limitation is derived from libgd.
++#  e.g. you can use "/usr/share/fonts/truetype/X-TT/wadalab-gothic.ttf"
++#  provided by ttf-xtt-wadalab-gothic package)
++#TrueTypeFont
++##################
+Index: webalizer/configure.in
+===================================================================
+--- webalizer.orig/configure.in	2011-01-08 20:36:44.000000000 +0100
++++ webalizer/configure.in	2011-01-08 20:59:49.000000000 +0100
+@@ -140,6 +140,7 @@
+ AC_CHECK_LIB(gd, main, LIBGD="yes"; LIBS="-lgd ${LIBS}")
+ if test "${LIBGD}" = "yes"; then
+   AC_CHECK_LIB(gd, gdImagePng, LIBGD="yes", LIBGD="no")
++  AC_CHECK_LIB(gd, gdImageStringFT, LIBS="-lgd ${LIBS}"; HAVE_LIBGD_TTF="yes", HAVE_LIBGD_TTF="")
+   if test "${LIBGD}" = "no"; then
+     AC_MSG_ERROR(Old version of libgd found.. please upgrade!)
+   fi
+@@ -147,6 +148,10 @@
+   AC_MSG_ERROR(gd library not found.. please install libgd)
+ fi
+ 
++if test "$HAVE_LIBGD_TTF" = "yes" ;then
++ AC_DEFINE(HAVE_LIBGD_TTF)
++fi
++
+ AC_CHECK_HEADER(gd.h, HDR="yes", HDR="no")
+ if test "${HDR}" = "no"; then
+   AC_MSG_ERROR(gd.h header not found.. please install)
+Index: webalizer/graphs.c
+===================================================================
+--- webalizer.orig/graphs.c	2011-01-08 20:59:42.000000000 +0100
++++ webalizer/graphs.c	2011-01-08 20:59:49.000000000 +0100
+@@ -1025,6 +1025,48 @@
+    return;
+ }
+ 
++#ifdef HAVE_LIBGD_TTF
++/*
++ * Simple wrapper of gdImageString() for TrueType fonts
++ *
++ * To support Japanese (and other multi-byte characters), GD 1.7
++ * or later that supports kanji(JISX208) TTF has been required.
++ * So, we must use TrueType fonts instead of gd built-in
++ * bitmap fonts.
++ * 
++ * Original of function written by <yasu@on.cs.keio.ac.jp>.
++ * And modified by Tatsuki Sugiura <sugi@nemui.org>
++ * 
++ */
++static void gdImageStringWrapper(gdImagePtr im,  gdFontPtr f,
++				 int x, int y,
++				 unsigned char *s, int color, double rad)
++{
++   double ptsize = 11.0;
++   int    brect[8];
++   extern char *ttf_file;
++
++   if (ttf_file == NULL || strcmp(ttf_file, "") == 0) {
++      if (fabs(rad) < PI/4.0)
++        gdImageString(im, f, x, y, s, color);
++      else
++        gdImageStringUp(im, f, x, y, s, color);
++   } else {
++      if (f == gdFontSmall)
++         ptsize = 9.0;
++
++      gdImageStringFT(im, brect, color, ttf_file, ptsize, rad, 
++                     x + (int)(ptsize*sin(rad)),
++                     y + (int)(ptsize*cos(rad)), s);
++   }
++}
++
++#define gdImageString(im, f, x, y, s, color) \
++        gdImageStringWrapper(im, f, x, y, s, color, 0.0)
++#define gdImageStringUp(im, f, x, y, s, color) \
++	gdImageStringWrapper(im, f, x, y, s, color, PI/2.0)
++#endif /* HAVE_LIBGD_TTF */
++
+ /****************************************************************/
+ /*                                                              */
+ /* ASHEX2INT - ASCII HEX TO INT CONVERTER                       */
+Index: webalizer/sample.conf
+===================================================================
+--- webalizer.orig/sample.conf	2011-01-08 20:59:48.000000000 +0100
++++ webalizer/sample.conf	2011-01-08 20:59:49.000000000 +0100
+@@ -792,4 +792,17 @@
+ #PieColor3	ff00ff
+ #PieColor4	ffc080
+ 
++# TrueTypeFont makes possible to replace GD built-in font by
++# specified TrueTypeFont.
++# The value can be '/path/to/your/true_type_font.file' or empty.
++# If value is empty(or commented out), GD built-in font will be used.
++# The default is empty.
++# (Supplement for Japanese:
++#  Under EUC-JP locale, TTF file must be specified which has *Windows
++#  Shift-JIS encoding*. This limitation is derived from libgd.
++#  e.g. you can use "/usr/share/fonts/truetype/X-TT/wadalab-gothic.ttf"
++#  provided by ttf-xtt-wadalab-gothic package)
++
++#TrueTypeFont
++
+ # End of configuration file...  Have a nice day!
+Index: webalizer/webalizer.c
+===================================================================
+--- webalizer.orig/webalizer.c	2011-01-08 20:59:42.000000000 +0100
++++ webalizer/webalizer.c	2011-01-08 20:59:49.000000000 +0100
+@@ -175,6 +175,10 @@
+ GeoIP   *geo_fp      = NULL;                  /* GeoIP database handle    */
+ #endif
+ 
++#ifdef HAVE_LIBGD_TTF
++char    *ttf_file    = "";                    /* truetype font file       */
++#endif
++
+ int     ntop_sites   = 30;                    /* top n sites to display   */
+ int     ntop_sitesK  = 10;                    /* top n sites (by kbytes)  */
+ int     ntop_urls    = 30;                    /* top n url's to display   */
+@@ -1668,7 +1672,10 @@
+                      "SearchCaseI",       /* srch str case insensitive  120 */
+ 		     "InOutkB",           /* logio (0=no,1=yes,2=auto)  121 */
+                      "ColorIKbyte",       /* IKbyte Color (def=0080ff)  122 */
+-                     "ColorOKbyte"        /* OKbyte Color (def=00e000)  123 */
++                     "ColorOKbyte",       /* OKbyte Color (def=00e000)  123 */
++#ifdef HAVE_LIBGD_TTF
++                     "TrueTypeFont"       /* TrueType Font file         124 */
++#endif
+                    };
+ 
+    FILE *fp;
+@@ -1908,6 +1915,9 @@
+                     (tolower(value[0])=='y')?1:2;  break; /* InOutkB        */
+         case 122: strncpy(ikbyte_color+1,value,6); break; /* ColorIKbyte    */
+         case 123: strncpy(okbyte_color+1,value,6); break; /* ColorOKbyte    */
++#ifdef HAVE_LIBGD_TTF
++        case 124: ttf_file=save_opt(value);        break; /* TrueType font  */
++#endif
+       }
+    }
+    fclose(fp);

@@ -1,0 +1,219 @@
+From: Julien Viard de Galbert <julien@vdg.blogsite.org>
+Date: Wed, 24 Nov 2010 18:22:53 +0100
+Subject: [PATCH] Allow configuring colors for logio datas
+
+This patch adds options to configure the colors of In and Out KBytes data
+from the apache_logio patch. It must be applied on top of apache_logio and
+apache_logio_optional patches.
+---
+ graphs.c    |    9 +++++++--
+ output.c    |   34 ++++++++++++++++++----------------
+ sample.conf |    2 ++
+ webalizer.c |    8 +++++++-
+ webalizer.h |    2 ++
+ 5 files changed, 36 insertions(+), 19 deletions(-)
+
+Index: webalizer/graphs.c
+===================================================================
+--- webalizer.orig/graphs.c	2011-01-08 20:59:32.000000000 +0100
++++ webalizer/graphs.c	2011-01-08 20:59:42.000000000 +0100
+@@ -51,8 +51,8 @@
+ #define FILECOLOR  file_or_blue            /* files               */
+ #define SITECOLOR  site_or_orange          /* sites               */
+ #define KBYTECOLOR kbyte_or_red            /* KBytes              */
+-#define IKBYTECOLOR file_or_blue           /* In KBytes           */
+-#define OKBYTECOLOR hit_or_green           /* Out KBytes          */
++#define IKBYTECOLOR ikbyte_or_blue         /* In KBytes           */
++#define OKBYTECOLOR okbyte_or_green        /* Out KBytes          */
+ #define PAGECOLOR  page_or_cyan            /* Files               */
+ #define VISITCOLOR visit_or_yellow         /* Visits              */
+ 
+@@ -95,6 +95,7 @@
+                   int mx; int my; };       /* midpoint x,y        */
+ /* colors */
+ int             black, white, grey, dkgrey, kbyte_or_red,
++                ikbyte_or_blue, okbyte_or_green,
+                 file_or_blue, site_or_orange, hit_or_green,
+                 page_or_cyan, visit_or_yellow, blue;
+ 
+@@ -992,6 +993,10 @@
+    file_or_blue = gdImageColorAllocate(im, r, g, b);
+    r=getred(kbyte_color); g=getgreen(kbyte_color); b=getblue(kbyte_color);
+    kbyte_or_red = gdImageColorAllocate(im, r, g, b);
++   r=getred(ikbyte_color); g=getgreen(ikbyte_color); b=getblue(ikbyte_color);
++   ikbyte_or_blue = gdImageColorAllocate(im, r, g, b);
++   r=getred(okbyte_color); g=getgreen(okbyte_color); b=getblue(okbyte_color);
++   okbyte_or_green = gdImageColorAllocate(im, r, g, b);
+    r=getred(page_color); g=getgreen(page_color); b=getblue(page_color);
+    page_or_cyan = gdImageColorAllocate(im, r, g, b);
+    r=getred(visit_color); g=getgreen(visit_color); b=getblue(visit_color);
+Index: webalizer/output.c
+===================================================================
+--- webalizer.orig/output.c	2011-01-08 20:59:32.000000000 +0100
++++ webalizer/output.c	2011-01-08 20:59:42.000000000 +0100
+@@ -132,6 +132,8 @@
+ #define FILECOLOR      file_color
+ #define SITECOLOR      site_color
+ #define KBYTECOLOR     kbyte_color
++#define IKBYTECOLOR    ikbyte_color
++#define OKBYTECOLOR    okbyte_color
+ #define PAGECOLOR      page_color
+ #define VISITCOLOR     visit_color
+ #define MISCCOLOR      misc_color
+@@ -726,8 +728,8 @@
+ 		     "<FONT SIZE=\"-1\">%s</FONT></TH>\n"                    \
+ 		     "<TH ALIGN=center BGCOLOR=\"%s\" COLSPAN=2>"            \
+ 		     "<FONT SIZE=\"-1\">%s</FONT></TH></TR>\n",
+-		     LTBLUE,  msg_h_ixfer,
+-		     GREEN,   msg_h_oxfer);
++		     IKBYTECOLOR,  msg_h_ixfer,
++		     OKBYTECOLOR,   msg_h_oxfer);
+    }
+    fprintf(out_fp,"<TR><TH HEIGHT=4></TH></TR>\n");
+ 
+@@ -833,8 +835,8 @@
+ 		     "<FONT SIZE=\"-1\">%s</FONT></TH>\n"          \
+ 		     "<TH ALIGN=center BGCOLOR=\"%s\" COLSPAN=3>"  \
+ 		     "<FONT SIZE=\"-1\">%s</FONT></TH></TR>\n",
+-		     LTBLUE,  msg_h_ixfer,
+-		     GREEN,   msg_h_oxfer);
++		     IKBYTECOLOR,  msg_h_ixfer,
++		     OKBYTECOLOR,   msg_h_oxfer);
+    }
+    fprintf(out_fp,"<TR><TH ALIGN=center BGCOLOR=\"%s\">"           \
+                   "<FONT SIZE=\"-2\">%s</FONT></TH>\n"             \
+@@ -867,12 +869,12 @@
+ 		     "<FONT SIZE=\"-2\">%s</FONT></TH>\n"          \
+ 		     "<TH ALIGN=center BGCOLOR=\"%s\" COLSPAN=2>"  \
+ 		     "<FONT SIZE=\"-2\">%s</FONT></TH>\n",
+-		     LTBLUE, msg_h_avg, LTBLUE, msg_h_total);
++		     IKBYTECOLOR, msg_h_avg, IKBYTECOLOR, msg_h_total);
+       fprintf(out_fp,"<TH ALIGN=center BGCOLOR=\"%s\">"            \
+ 		     "<FONT SIZE=\"-2\">%s</FONT></TH>\n"          \
+ 		     "<TH ALIGN=center BGCOLOR=\"%s\" COLSPAN=2>"  \
+ 		     "<FONT SIZE=\"-2\">%s</FONT></TH></TR>\n",
+-		     GREEN, msg_h_avg, GREEN, msg_h_total);
++		     OKBYTECOLOR, msg_h_avg, OKBYTECOLOR, msg_h_total);
+    }
+ 
+    fprintf(out_fp,"<TR><TH HEIGHT=4></TH></TR>\n");
+@@ -984,9 +986,9 @@
+    if (dump_inout != 0)
+    {
+       fprintf(out_fp,"<TH BGCOLOR=\"%s\" ALIGN=center COLSPAN=2>"           \
+-	     "<FONT SIZE=\"-1\">%s</FONT></TH>\n",LTBLUE,msg_h_ixfer);
++	     "<FONT SIZE=\"-1\">%s</FONT></TH>\n",IKBYTECOLOR,msg_h_ixfer);
+       fprintf(out_fp,"<TH BGCOLOR=\"%s\" ALIGN=center COLSPAN=2>"           \
+-	     "<FONT SIZE=\"-1\">%s</FONT></TH>\n",GREEN,msg_h_oxfer);
++	     "<FONT SIZE=\"-1\">%s</FONT></TH>\n",OKBYTECOLOR,msg_h_oxfer);
+    }
+    fprintf(out_fp,"<TH BGCOLOR=\"%s\" ALIGN=center COLSPAN=2>"              \
+           "<FONT SIZE=\"-1\">%s</FONT></TH>\n",VISITCOLOR,msg_h_visits);
+@@ -1217,10 +1219,10 @@
+    {
+       fprintf(out_fp,"<TH BGCOLOR=\"%s\" ALIGN=center COLSPAN=2>"         \
+ 		     "<FONT SIZE=\"-1\">%s</FONT></TH>\n",
+-		     LTBLUE,msg_h_ixfer);
++		     IKBYTECOLOR,msg_h_ixfer);
+       fprintf(out_fp,"<TH BGCOLOR=\"%s\" ALIGN=center COLSPAN=2>"         \
+ 		     "<FONT SIZE=\"-1\">%s</FONT></TH>\n",
+-		     GREEN,msg_h_oxfer);
++		     OKBYTECOLOR,msg_h_oxfer);
+    }
+    fprintf(out_fp,"<TH BGCOLOR=\"%s\" ALIGN=center>"                      \
+                   "<FONT SIZE=\"-1\">%s</FONT></TH></TR>\n",
+@@ -2001,9 +2003,9 @@
+    if (dump_inout != 0)
+    {
+       fprintf(out_fp,"<TH BGCOLOR=\"%s\" ALIGN=center COLSPAN=2>"             \
+-	     "<FONT SIZE=\"-1\">%s</FONT></TH>\n",LTBLUE,msg_h_ixfer);
++	     "<FONT SIZE=\"-1\">%s</FONT></TH>\n",IKBYTECOLOR,msg_h_ixfer);
+       fprintf(out_fp,"<TH BGCOLOR=\"%s\" ALIGN=center COLSPAN=2>"             \
+-	     "<FONT SIZE=\"-1\">%s</FONT></TH>\n",GREEN,msg_h_oxfer);
++	     "<FONT SIZE=\"-1\">%s</FONT></TH>\n",OKBYTECOLOR,msg_h_oxfer);
+    }
+    fprintf(out_fp,"<TH BGCOLOR=\"%s\" ALIGN=center COLSPAN=2>"             \
+           "<FONT SIZE=\"-1\">%s</FONT></TH>\n",VISITCOLOR,msg_h_visits);
+@@ -2352,9 +2354,9 @@
+    if (dump_inout != 0)
+    {
+       fprintf(out_fp,"<TH BGCOLOR=\"%s\" ALIGN=center COLSPAN=2>"          \
+-	     "<FONT SIZE=\"-1\">%s</FONT></TH>\n",LTBLUE,msg_h_ixfer);
++	     "<FONT SIZE=\"-1\">%s</FONT></TH>\n",IKBYTECOLOR,msg_h_ixfer);
+       fprintf(out_fp,"<TH BGCOLOR=\"%s\" ALIGN=center COLSPAN=2>"          \
+-	     "<FONT SIZE=\"-1\">%s</FONT></TH>\n",GREEN,msg_h_oxfer);
++	     "<FONT SIZE=\"-1\">%s</FONT></TH>\n",OKBYTECOLOR,msg_h_oxfer);
+    }
+    fprintf(out_fp,"<TH BGCOLOR=\"%s\" ALIGN=center>"                       \
+           "<FONT SIZE=\"-1\">%s</FONT></TH></TR>\n",MISCCOLOR,msg_h_ctry);
+@@ -2782,9 +2784,9 @@
+    if (dump_inout != 0)
+    {
+       fprintf(out_fp,"<TH ALIGN=center BGCOLOR=\"%s\">"                   \
+-	     "<FONT SIZE=\"-1\">%s</FONT></TH>\n",LTBLUE,msg_h_ixfer);
++	     "<FONT SIZE=\"-1\">%s</FONT></TH>\n",IKBYTECOLOR,msg_h_ixfer);
+       fprintf(out_fp,"<TH ALIGN=center BGCOLOR=\"%s\">"                   \
+-	     "<FONT SIZE=\"-1\">%s</FONT></TH>\n",GREEN,msg_h_oxfer);
++	     "<FONT SIZE=\"-1\">%s</FONT></TH>\n",OKBYTECOLOR,msg_h_oxfer);
+    }
+    fprintf(out_fp,"<TH ALIGN=center BGCOLOR=\"%s\">"                      \
+           "<FONT SIZE=\"-1\">%s</FONT></TH>\n",VISITCOLOR,msg_h_visits);
+Index: webalizer/sample.conf
+===================================================================
+--- webalizer.orig/sample.conf	2011-01-08 20:59:32.000000000 +0100
++++ webalizer/sample.conf	2011-01-08 20:59:42.000000000 +0100
+@@ -778,6 +778,8 @@
+ #ColorFile	0040ff
+ #ColorSite	ff8000
+ #ColorKbyte	ff0000
++#ColorIKbyte    0080ff
++#ColorOKbyte    00e000
+ #ColorPage	00e0ff
+ #ColorVisit	ffff00
+ #ColorMisc      00e0ff
+Index: webalizer/webalizer.c
+===================================================================
+--- webalizer.orig/webalizer.c	2011-01-08 20:59:32.000000000 +0100
++++ webalizer/webalizer.c	2011-01-08 20:59:42.000000000 +0100
+@@ -267,6 +267,8 @@
+ char    file_color[]  = "#0040ff";            /* graph file color         */
+ char    site_color[]  = "#ff8000";            /* graph site color         */
+ char    kbyte_color[] = "#ff0000";            /* graph kbyte color        */
++char    ikbyte_color[]= "#0080ff";            /* graph ikbyte color       */
++char    okbyte_color[]= "#00e000";            /* graph okbyte color       */
+ char    page_color[]  = "#00e0ff";            /* graph page color         */
+ char    visit_color[] = "#ffff00";            /* graph visit color        */
+ char    misc_color[]  = "#00e0ff";            /* graph misc color         */
+@@ -1664,7 +1666,9 @@
+                      "CountryFlags",      /* show country flags? (0-no) 118 */
+                      "FlagDir",           /* directory w/flag images    119 */
+                      "SearchCaseI",       /* srch str case insensitive  120 */
+-		     "InOutkB"            /* logio (0=no,1=yes,2=auto)  121 */
++		     "InOutkB",           /* logio (0=no,1=yes,2=auto)  121 */
++                     "ColorIKbyte",       /* IKbyte Color (def=0080ff)  122 */
++                     "ColorOKbyte"        /* OKbyte Color (def=00e000)  123 */
+                    };
+ 
+    FILE *fp;
+@@ -1902,6 +1906,8 @@
+ 	case 121: dump_inout=
+ 	            (tolower(value[0])=='n')?0:
+                     (tolower(value[0])=='y')?1:2;  break; /* InOutkB        */
++        case 122: strncpy(ikbyte_color+1,value,6); break; /* ColorIKbyte    */
++        case 123: strncpy(okbyte_color+1,value,6); break; /* ColorOKbyte    */
+       }
+    }
+    fclose(fp);
+Index: webalizer/webalizer.h
+===================================================================
+--- webalizer.orig/webalizer.h	2011-01-08 20:59:32.000000000 +0100
++++ webalizer/webalizer.h	2011-01-08 20:59:42.000000000 +0100
+@@ -291,6 +291,8 @@
+ extern char    file_color[];                  /* graph file color         */
+ extern char    site_color[];                  /* graph site color         */
+ extern char    kbyte_color[];                 /* graph kbyte color        */
++extern char    ikbyte_color[];                /* graph ikbyte color       */
++extern char    okbyte_color[];                /* graph okbyte color       */
+ extern char    page_color[];                  /* graph page color         */
+ extern char    visit_color[];                 /* graph visit color        */
+ extern char    misc_color[];                  /* graph misc color         */

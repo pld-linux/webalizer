@@ -1,0 +1,23 @@
+From: Jose Carlos Medeiros <debian@psabs.com.br>
+Subject: Ignore localhost by default in sample.conf file
+
+###########################
+# default webalizer.conf *should* ignore localhost
+# http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=168418
+# From: "Norbert Bottlaender-Prier" <norbert@globenet.org>
+
+Index: webalizer/sample.conf
+===================================================================
+--- webalizer.orig/sample.conf	2010-11-24 17:01:43.000000000 +0100
++++ webalizer/sample.conf	2010-11-24 17:01:51.000000000 +0100
+@@ -667,8 +667,10 @@
+ # should consider using an equivalent 'Hide*' keyword instead.
+ 
+ #IgnoreSite	bad.site.net
++IgnoreSite	localhost
+ #IgnoreURL	/test*
+ #IgnoreReferrer	file:/*
++IgnoreReferrer	localhost
+ #IgnoreAgent	RealPlayer
+ #IgnoreUser     root
+ 
