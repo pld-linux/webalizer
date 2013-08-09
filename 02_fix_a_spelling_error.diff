@@ -1,0 +1,28 @@
+From: Julien Viard de Galbert <julien@vdg.blogsite.org>
+Date: Wed, 24 Nov 2010 00:16:20 +0100
+Subject: Fix a spelling error
+
+Thank you lintian ;)
+
+Index: webalizer/wcmgr.c
+===================================================================
+--- webalizer.orig/wcmgr.c	2010-11-24 00:17:21.000000000 +0100
++++ webalizer/wcmgr.c	2010-11-24 00:20:19.000000000 +0100
+@@ -683,7 +683,7 @@
+    }
+    dns_db->close(dns_db, 0);
+    if (verbose)
+-      printf("%s sucessfully deleted from cache file\n",addr);
++      printf("%s successfully deleted from cache file\n",addr);
+ }
+ 
+ /*********************************************/
+@@ -761,7 +761,7 @@
+          if (db_put(addr, name, (strcmp(name,addr))?0:1, runtime)==0)
+             dns_db->close(dns_db,0);
+          if (verbose)
+-            printf("%s sucessfully added to cache file\n",addr);
++            printf("%s successfully added to cache file\n",addr);
+       }
+    }
+ }

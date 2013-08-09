@@ -2,12 +2,13 @@
 # - subpackage for cgi?
 # - move icons out of /home/services
 # - think and fix the trigger.
+# - create workaround for language selection
 #
 # Conditional build:
 %bcond_with	db3	# build with db3 instead of db 4.x
 #
-%define		ver		2.01
-%define		patchlvl	10
+%define		ver		2.23
+%define		patchlvl	05
 Summary:	The Webalizer - A web server log file analysis thingie
 Summary(es.UTF-8):	Software para análisis de archivos de log de servidores WWW
 Summary(pl.UTF-8):	Webalizer - analizator logów serwera WWW
@@ -16,22 +17,29 @@ Summary(ru.UTF-8):	Программа анализа log-файла web/ftp/prox
 Summary(uk.UTF-8):	Програма аналізу log-файлу web/ftp/proxy-сервера
 Name:		webalizer
 Version:	%{ver}_%{patchlvl}
-Release:	24
+Release:	2
 License:	GPL v2
 Group:		Networking/Utilities
 Source0:	ftp://ftp.mrunix.net/pub/webalizer/%{name}-%{ver}-%{patchlvl}-src.tar.bz2
-# Source0-md5:	26d0a3c142423678daed2d6f579525d8
-Source1:	http://linux.gda.pl/pub/webalizer/%{name}_lang.polish
-# Source1-md5:	510bc595699373c4d7a8093a5ea10df3
+# Source0-md5:	18cb592434dae81e9bdd8f55f5e28b96
+
 Source2:	%{name}.sysconfig
 Source3:	%{name}.cron
 Source4:	%{name}.crontab
-Patch0:		%{name}-debian-23.patch
-Patch1:		%{name}-nolibnsl.patch
-Patch2:		%{name}-conf.patch
-Patch3:		%{name}-debian_gcc2_fix.patch
-Patch4:		%{name}-largefile.patch
-Patch5:		%{name}-forwardcompat.patch
+#
+Patch100:	01_symlink_vulnerability.diff
+Patch101:	02_fix_a_spelling_error.diff
+Patch102:	05_apache_logio.diff
+Patch103:	06_apache_logio_optional.diff
+Patch104:	07_apache_logio_color_config.diff
+Patch105:	15_ignore_localhost.diff
+Patch106:	18_ttf_support_throught_libgd.diff
+Patch107:	23_gettext_first_part.diff
+Patch108:	24_gettext_generated.diff
+Patch109:	25_gettext_po_files.diff
+#
+Patch0:		%{name}-nolibnsl.patch
+Patch1:		%{name}-conf.patch
 URL:		http://www.mrunix.net/webalizer/
 BuildRequires:	autoconf
 %{!?with_db3:BuildRequires:	db-devel}
@@ -42,7 +50,7 @@ BuildRequires:	libpng-devel >= 1.0.8
 BuildRequires:	zlib-devel
 Requires:	%{name}-base = %{version}-%{release}
 # sr@Latn vs. sr@latin
-Conflicts:	glibc-misc < 6:2.7
+#Conflicts:	glibc-misc < 6:2.7
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %define		_webdir		/home/services/httpd
@@ -106,18 +114,23 @@ Webalizer i dokumentacja do niego.
 
 %prep
 %setup -q -n %{name}-%{ver}-%{patchlvl}
+%patch100 -p1
+%patch101 -p1
+%patch102 -p1
+%patch103 -p1
+%patch104 -p1
+%patch105 -p1
+%patch106 -p1
+%patch107 -p1
+%patch108 -p1
+%patch109 -p1
+
 %patch0 -p1
 %patch1 -p1
-%patch2 -p1
-%patch3 -p1
-%patch4 -p1
-%patch5 -p1
 
 mv -f po/{no,nb}.po
 mv -f po/{sr,sr@latin}.po
 mv -f po/{zh,zh_TW}.po
-
-install %{SOURCE1} lang
 
 %build
 # don't call aclocal, aclocal.m4 contains only one _local_ macro
@@ -168,18 +181,20 @@ for dir in `grep ^OutputDir %{_sysconfdir}/webalizer/*.conf | awk '{ print $2; }
 	fi
 done
 
-%files -f %{name}.lang
+%files
 %defattr(644,root,root,755)
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/cron.d/webalizer
 %attr(2755,root,stats) %dir %{_sysconfdir}/%{name}
 %attr(755,root,root) %{_sbindir}/webalizer.cron
 %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/webalizer
 
-%files base
+%files base -f %{name}.lang
 %defattr(644,root,root,755)
 %doc CHANGES *README* country-codes.txt
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/webalizer.conf
 %attr(755,root,root) %{_bindir}/webalizer
 %attr(755,root,root) %{_bindir}/webazolver
 %{_mandir}/man1/*
+%dir %{_webdir}
+%dir %{_webdir}/icons
 %{_webdir}/icons/*
