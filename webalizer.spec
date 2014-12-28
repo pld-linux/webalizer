@@ -45,7 +45,7 @@ BuildRequires:	autoconf
 %{!?with_db3:BuildRequires:	db-devel}
 %{?with_db3:BuildRequires:	db3-devel}
 BuildRequires:	gd-devel >= 2.0.1
-BuildRequires:	gettext-devel
+BuildRequires:	gettext-tools
 BuildRequires:	libpng-devel >= 1.0.8
 BuildRequires:	zlib-devel
 Requires:	%{name}-base = %{version}-%{release}
