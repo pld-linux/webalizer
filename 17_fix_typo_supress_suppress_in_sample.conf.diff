@@ -1,0 +1,21 @@
+From: Julien Viard de Galbert <julien@vdg.blogsite.org>
+Date: Wed, 12 Jul 2017 23:59:31 +0200
+Subject: Fix typo supress -> suppress in sample.conf
+
+---
+ sample.conf | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/sample.conf b/sample.conf
+index 925f509..fc91d0c 100644
+--- a/sample.conf
++++ b/sample.conf
+@@ -289,7 +289,7 @@ PageType	cgi
+ 
+ #Quiet		no
+ 
+-# ReallyQuiet will supress all messages including errors and
++# ReallyQuiet will suppress all messages including errors and
+ # warnings.  Values can be 'yes' or 'no' with 'no' being the
+ # default.  If 'yes' is used here, it cannot be overriden from
+ # the command line, so use with caution.  A value of 'no' has

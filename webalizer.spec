@@ -8,7 +8,7 @@
 %bcond_with	db3	# build with db3 instead of db 4.x
 #
 %define		ver		2.23
-%define		patchlvl	05
+%define		patchlvl	08
 Summary:	The Webalizer - A web server log file analysis thingie
 Summary(es.UTF-8):	Software para análisis de archivos de log de servidores WWW
 Summary(pl.UTF-8):	Webalizer - analizator logów serwera WWW
@@ -17,11 +17,11 @@ Summary(ru.UTF-8):	Программа анализа log-файла web/ftp/prox
 Summary(uk.UTF-8):	Програма аналізу log-файлу web/ftp/proxy-сервера
 Name:		webalizer
 Version:	%{ver}_%{patchlvl}
-Release:	4
+Release:	1
 License:	GPL v2
 Group:		Networking/Utilities
 Source0:	ftp://ftp.mrunix.net/pub/webalizer/%{name}-%{ver}-%{patchlvl}-src.tar.bz2
-# Source0-md5:	18cb592434dae81e9bdd8f55f5e28b96
+# Source0-md5:	d25a9715dcbfe67ddf86816c27fbda2b
 
 Source2:	%{name}.sysconfig
 Source3:	%{name}.cron
@@ -29,14 +29,21 @@ Source4:	%{name}.crontab
 #
 Patch100:	01_symlink_vulnerability.diff
 Patch101:	02_fix_a_spelling_error.diff
-Patch102:	05_apache_logio.diff
-Patch103:	06_apache_logio_optional.diff
-Patch104:	07_apache_logio_color_config.diff
-Patch105:	15_ignore_localhost.diff
-Patch106:	18_ttf_support_throught_libgd.diff
-Patch107:	23_gettext_first_part.diff
-Patch108:	24_gettext_generated.diff
-Patch109:	25_gettext_po_files.diff
+Patch102:	03_fix_etc_path_in_man.diff
+Patch103:	04_Fix_cast_warnings_in_output.c.diff
+Patch104:	05_apache_logio.diff
+Patch105:	06_apache_logio_optional.diff
+Patch106:	07_apache_logio_color_config.diff
+Patch107:	08_use_memmove_for_overlapping_blocks.diff
+Patch108:	14_add_search_engines.diff
+Patch109:	15_ignore_localhost.diff
+Patch110:	17_fix_typo_supress_suppress_in_sample.conf.diff
+Patch111:	18_ttf_support_throught_libgd.diff
+Patch112:	22_php_as_htm_in_sample.conf.diff
+Patch113:	23_gettext_first_part.diff
+Patch114:	24_gettext_generated.diff
+Patch115:	25_add_convertlang2po.diff
+Patch116:	26_gettext_po_files.diff
 #
 Patch0:		%{name}-nolibnsl.patch
 Patch1:		%{name}-conf.patch
@@ -125,6 +132,13 @@ Webalizer i dokumentacja do niego.
 %patch107 -p1
 %patch108 -p1
 %patch109 -p1
+%patch110 -p1
+%patch111 -p1
+%patch112 -p1
+%patch113 -p1
+%patch114 -p1
+%patch115 -p1
+%patch116 -p1
 
 %patch0 -p1
 %patch1 -p1

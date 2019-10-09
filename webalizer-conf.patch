@@ -9,17 +9,16 @@
  
  # LogType defines the log type being processed.  Normally, the Webalizer
  # expects a CLF or Combined web server log as input.  Using this option,
-@@ -107,9 +107,11 @@
+@@ -107,10 +107,11 @@ LogFile        /var/log/httpd/access_log
  
  PageType	htm*
  PageType	cgi
 -#PageType	phtml
--#PageType	php3
--#PageType	pl
 +PageType	phtml
-+PageType	php3
-+PageType	php
+ PageType	php3
+-#PageType	pl
 +PageType	pl
+ PageType	php
 +PageType	shtml
  
  # PagePrefix allows all requests with a specified prefix to be
@@ -117,40 +116,4 @@
  #HideAgent	Mozilla*
  
  # HideAllSites allows forcing individual sites to be hidden in the
-@@ -699,21 +722,21 @@
- # engine, and the second is the URL variable used by that search engine
- # to define it's search terms.
- 
--#SearchEngine	.google.   	q=
--#SearchEngine	yahoo.com	p=
--#SearchEngine	altavista.com	q=
--#SearchEngine   aolsearch.      query=
--#SearchEngine   ask.co          q=
--#SearchEngine	eureka.com	q=
--#SearchEngine	lycos.com	query=
--#SearchEngine	hotbot.com	MT=
--#SearchEngine	msn.com		q=
--#SearchEngine	infoseek.com	qt=
--#SearchEngine	excite		search=
--#SearchEngine	netscape.com	query=
--#SearchEngine	mamma.com	query=
--#SearchEngine	alltheweb.com	q=
--#SearchEngine	northernlight.com  qr=
-+SearchEngine	.google.   	q=
-+SearchEngine	yahoo.com	p=
-+SearchEngine	altavista.com	q=
-+SearchEngine   aolsearch.      query=
-+SearchEngine   ask.co          q=
-+SearchEngine	eureka.com	q=
-+SearchEngine	lycos.com	query=
-+SearchEngine	hotbot.com	MT=
-+SearchEngine	msn.com		q=
-+SearchEngine	infoseek.com	qt=
-+SearchEngine	excite		search=
-+SearchEngine	netscape.com	query=
-+SearchEngine	mamma.com	query=
-+SearchEngine	alltheweb.com	q=
-+SearchEngine	northernlight.com  qr=
- 
- # Normally, search strings are converted to lower case in order to
- # increase accuracy.  The SearchCaseI option allows them to maintain
+

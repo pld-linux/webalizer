@@ -6,8 +6,8 @@ the script 'lang_po.sh'.
 
 Index: webalizer/dns_resolv.c
 ===================================================================
---- webalizer.orig/dns_resolv.c	2011-01-08 20:59:53.000000000 +0100
-+++ webalizer/dns_resolv.c	2011-01-08 20:59:58.000000000 +0100
+--- webalizer.orig/dns_resolv.c	2013-10-06 14:48:22.000000000 +0200
++++ webalizer/dns_resolv.c	2013-10-06 14:48:22.000000000 +0200
 @@ -199,7 +199,7 @@
             DB_CREATE, 0644) != 0) )
     {
@@ -70,8 +70,8 @@ Index: webalizer/dns_resolv.c
     }
 Index: webalizer/graphs.c
 ===================================================================
---- webalizer.orig/graphs.c	2011-01-08 20:59:53.000000000 +0100
-+++ webalizer/graphs.c	2011-01-08 20:59:58.000000000 +0100
+--- webalizer.orig/graphs.c	2013-10-06 14:48:22.000000000 +0200
++++ webalizer/graphs.c	2013-10-06 14:48:22.000000000 +0200
 @@ -141,68 +141,68 @@
     if (graph_legend)
     {
@@ -331,8 +331,8 @@ Index: webalizer/graphs.c
     }
 Index: webalizer/hashtab.c
 ===================================================================
---- webalizer.orig/hashtab.c	2011-01-08 20:59:30.000000000 +0100
-+++ webalizer/hashtab.c	2011-01-08 20:59:58.000000000 +0100
+--- webalizer.orig/hashtab.c	2013-10-06 14:48:22.000000000 +0200
++++ webalizer/hashtab.c	2013-10-06 14:48:22.000000000 +0200
 @@ -119,7 +119,7 @@
     {
        if (verbose)
@@ -342,7 +342,7 @@ Index: webalizer/hashtab.c
           if (debug_mode)
              fprintf(stderr,":\n--> %s",str);
           fprintf(stderr,"\n");
-@@ -338,7 +338,7 @@
+@@ -318,7 +318,7 @@
     {
        if (verbose)
        {
@@ -351,7 +351,7 @@ Index: webalizer/hashtab.c
           if (debug_mode)
              fprintf(stderr,":\n--> %s",str);
           fprintf(stderr,"\n");
-@@ -474,7 +474,7 @@
+@@ -454,7 +454,7 @@
     {
        if (verbose)
        {
@@ -360,7 +360,7 @@ Index: webalizer/hashtab.c
           if (debug_mode)
              fprintf(stderr,":\n--> %s",str);
           fprintf(stderr,"\n");
-@@ -600,7 +600,7 @@
+@@ -575,7 +575,7 @@
     {
        if (verbose)
        {
@@ -369,7 +369,7 @@ Index: webalizer/hashtab.c
           if (debug_mode)
              fprintf(stderr,":\n--> %s",str);
           fprintf(stderr,"\n");
-@@ -719,7 +719,7 @@
+@@ -694,7 +694,7 @@
     {
        if (verbose)
        {
@@ -378,7 +378,7 @@ Index: webalizer/hashtab.c
           if (debug_mode)
              fprintf(stderr,":\n--> %s",str);
           fprintf(stderr,"\n");
-@@ -826,7 +826,7 @@
+@@ -801,7 +801,7 @@
     {
        if (verbose)
        {
@@ -387,7 +387,7 @@ Index: webalizer/hashtab.c
           if (debug_mode)
              fprintf(stderr,":\n--> %s",str);
           fprintf(stderr,"\n");
-@@ -1006,7 +1006,7 @@
+@@ -981,7 +981,7 @@
     {
        if (verbose)
        {
@@ -398,8 +398,8 @@ Index: webalizer/hashtab.c
           fprintf(stderr,"\n");
 Index: webalizer/linklist.c
 ===================================================================
---- webalizer.orig/linklist.c	2011-01-08 20:36:44.000000000 +0100
-+++ webalizer/linklist.c	2011-01-08 20:59:58.000000000 +0100
+--- webalizer.orig/linklist.c	2013-10-06 14:48:22.000000000 +0200
++++ webalizer/linklist.c	2013-10-06 14:48:22.000000000 +0200
 @@ -106,7 +106,7 @@
     if (sizeof(newptr->string) < strlen(str))
     {
@@ -420,8 +420,8 @@ Index: webalizer/linklist.c
       {
 Index: webalizer/output.c
 ===================================================================
---- webalizer.orig/output.c	2011-01-08 20:59:53.000000000 +0100
-+++ webalizer/output.c	2011-01-08 20:59:58.000000000 +0100
+--- webalizer.orig/output.c	2013-10-06 14:48:22.000000000 +0200
++++ webalizer/output.c	2013-10-06 14:48:22.000000000 +0200
 @@ -189,9 +189,9 @@
     fprintf(out_fp,"<!--                                          -->\n");
     fprintf(out_fp,"<!-- *** Generated: %s *** -->\n\n",cur_time());
@@ -1460,8 +1460,8 @@ Index: webalizer/output.c
     return out_fp;
 Index: webalizer/parser.c
 ===================================================================
---- webalizer.orig/parser.c	2011-01-08 20:59:30.000000000 +0100
-+++ webalizer/parser.c	2011-01-08 20:59:58.000000000 +0100
+--- webalizer.orig/parser.c	2013-10-06 14:48:22.000000000 +0200
++++ webalizer/parser.c	2013-10-06 14:48:22.000000000 +0200
 @@ -229,7 +229,7 @@
     {
        if (verbose)
@@ -1536,8 +1536,8 @@ Index: webalizer/parser.c
        }
 Index: webalizer/preserve.c
 ===================================================================
---- webalizer.orig/preserve.c	2011-01-08 20:59:30.000000000 +0100
-+++ webalizer/preserve.c	2011-01-08 20:59:58.000000000 +0100
+--- webalizer.orig/preserve.c	2013-10-06 14:48:22.000000000 +0200
++++ webalizer/preserve.c	2013-10-06 14:48:22.000000000 +0200
 @@ -75,7 +75,7 @@
  
     if (hist_fp)
@@ -1690,8 +1690,8 @@ Index: webalizer/preserve.c
  
 Index: webalizer/webalizer.c
 ===================================================================
---- webalizer.orig/webalizer.c	2011-01-08 20:59:53.000000000 +0100
-+++ webalizer/webalizer.c	2011-01-08 20:59:58.000000000 +0100
+--- webalizer.orig/webalizer.c	2013-10-06 14:48:22.000000000 +0200
++++ webalizer/webalizer.c	2013-10-06 14:48:22.000000000 +0200
 @@ -326,7 +326,7 @@
     setlocale(LC_CTYPE,"");
  

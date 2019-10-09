@@ -1,0 +1,67 @@
+From: Julien Viard de Galbert <julien@vdg.blogsite.org>
+Date: Tue, 7 Oct 2014 23:45:04 +0200
+Subject: Fix cast warnings when building output.c
+
+Casts were used to cast to the same type, so discarded them.
+---
+ output.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/output.c b/output.c
+index 838d383..81e869c 100644
+--- a/output.c
++++ b/output.c
+@@ -949,7 +949,7 @@ void top_sites_table(int flag)
+    while(cnt--)
+    {
+       /* calculate totals */
+-      switch ( (int)((HNODEPTR)(*pointer)->flag) )
++      switch ( (*pointer)->flag )
+       {
+          case OBJ_REG:   h_reg++;  break;
+          case OBJ_GRP:   h_grp++;  break;
+@@ -1182,7 +1182,7 @@ void top_urls_table(int flag)
+    while (cnt--)
+    {
+       /* calculate totals */
+-      switch ( (int)((UNODEPTR)(*pointer)->flag) )
++      switch ( (*pointer)->flag )
+       {
+          case OBJ_REG:  u_reg++;  break;
+          case OBJ_GRP:  u_grp++;  break;
+@@ -1436,7 +1436,7 @@ void top_entry_table(int flag)
+    cnt=a_ctr; pointer=u_array;
+    while (cnt--)
+    {
+-      if ( (int)((UNODEPTR)(*pointer)->flag) == OBJ_REG )
++      if ( (*pointer)->flag == OBJ_REG )
+       {
+          if ( (u_int64_t)(((UNODEPTR)(*pointer))->entry) )
+             {  u_entry++; t_entry+=(u_int64_t)(((UNODEPTR)(*pointer))->entry); }
+@@ -1540,7 +1540,7 @@ void top_refs_table()
+    while(cnt--)
+    {
+       /* calculate totals */
+-      switch ( (int)((RNODEPTR)(*pointer)->flag) )
++      switch ( (*pointer)->flag )
+       {
+          case OBJ_REG:  r_reg++;  break;
+          case OBJ_HIDE: r_hid++;  break;
+@@ -1705,7 +1705,7 @@ void top_agents_table()
+    while(cnt--)
+    {
+       /* calculate totals */
+-      switch ( (int)((ANODEPTR)(*pointer)->flag) )
++      switch ( (*pointer)->flag )
+       {
+          case OBJ_REG:   a_reg++;  break;
+          case OBJ_GRP:   a_grp++;  break;
+@@ -1972,7 +1972,7 @@ void top_users_table()
+    while(cnt--)
+    {
+       /* calculate totals */
+-      switch ( (int)((INODEPTR)(*pointer)->flag) )
++      switch ( (*pointer)->flag )
+       {
+          case OBJ_REG:   i_reg++;  break;
+          case OBJ_GRP:   i_grp++;  break;

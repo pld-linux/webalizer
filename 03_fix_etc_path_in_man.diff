@@ -1,0 +1,35 @@
+From: Julien Viard de Galbert <julien@vdg.blogsite.org>
+Date: Wed, 12 Jul 2017 22:14:37 +0200
+Subject: fix etc path in manpage
+
+Forwarded: not-needed
+
+  The package is configured to use /etc/webalizer/ as config dir, not /etc/.
+---
+ webalizer.1 | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/webalizer.1 b/webalizer.1
+index bd94cb4..7727ca0 100644
+--- a/webalizer.1
++++ b/webalizer.1
+@@ -45,8 +45,8 @@ as a \fBcrond(8)\fP job. Once executed, the general flow of the program is:
+ .B o
+ A default configuration file is scanned for.  A file named
+ \fIwebalizer.conf\fP is searched for in the current directory, and if
+-found, it's configuration data is parsed.  If the file is not
+-present in the current directory,  the file \fI/etc/webalizer.conf\fP
++found, its configuration data is parsed.  If the file is not
++present in the current directory,  the file \fI/etc/webalizer/webalizer.conf\fP
+ is searched for and, if found, is used instead.
+ .TP 8
+ .B o
+@@ -879,7 +879,7 @@ had search string information present.
+ .TP 20
+ .I webalizer.conf
+ Default configuration file.  Is searched for in the current directory
+-and if not found, in the \fI/etc/\fP directory.
++and if not found, in the \fI/etc/webalizer/\fP directory.
+ .TP 20
+ .I webalizer.hist
+ Monthly history file for previous months.  (can be changed)

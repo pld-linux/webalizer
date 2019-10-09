@@ -6,9 +6,9 @@ Thank you lintian ;)
 
 Index: webalizer/wcmgr.c
 ===================================================================
---- webalizer.orig/wcmgr.c	2010-11-24 00:17:21.000000000 +0100
-+++ webalizer/wcmgr.c	2010-11-24 00:20:19.000000000 +0100
-@@ -683,7 +683,7 @@
+--- webalizer.orig/wcmgr.c	2013-10-06 14:34:50.000000000 +0200
++++ webalizer/wcmgr.c	2013-10-06 14:45:59.000000000 +0200
+@@ -692,7 +692,7 @@
     }
     dns_db->close(dns_db, 0);
     if (verbose)
@@ -17,7 +17,7 @@ Index: webalizer/wcmgr.c
  }
  
  /*********************************************/
-@@ -761,7 +761,7 @@
+@@ -770,7 +770,7 @@
           if (db_put(addr, name, (strcmp(name,addr))?0:1, runtime)==0)
              dns_db->close(dns_db,0);
           if (verbose)

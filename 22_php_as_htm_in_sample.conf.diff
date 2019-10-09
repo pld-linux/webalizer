@@ -1,0 +1,18 @@
+From: Jose Carlos Medeiros <debian@psabs.com.br>
+Subject: enable php as htm pages
+
+Index: webalizer/sample.conf
+===================================================================
+--- webalizer.orig/sample.conf	2010-11-24 00:04:10.000000000 +0100
++++ webalizer/sample.conf	2010-11-24 00:04:12.000000000 +0100
+@@ -108,8 +108,9 @@
+ PageType	htm*
+ PageType	cgi
+ #PageType	phtml
+-#PageType	php3
++PageType	php3
+ #PageType	pl
++PageType	php
+ 
+ # PagePrefix allows all requests with a specified prefix to be
+ # considered as 'pages'. If you want everything under /documents

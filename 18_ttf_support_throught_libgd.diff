@@ -1,5 +1,5 @@
 From: Tatsuki Sugiura <sugi@nemui.org>
-Subject: make possible to use TrueTypeFont throught libgd
+Subject: make possible to use TrueTypeFont through libgd
 
 Origin: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=201723
 
@@ -11,7 +11,7 @@ Origin: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=201723
 # GD's built-in font has no Japanese Kanji and any other multi-byte
 # characters. Graph labels can't be displayed correctly under some
 # locales which has these characters.
-# This patch make possible to use TrueTypeFont throught libgd
+# This patch make possible to use TrueTypeFont through libgd
 # function.
 
 Index: webalizer/README.FIRST

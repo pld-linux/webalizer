@@ -1,0 +1,47 @@
+From: Kees Monshouwer <mind04@launchpad??>
+Date: Tue, 05 Apr 2016 00:00:00 +0200
+Subject: Use memmove for overlapping blocks
+
+Origin: https://bugs.launchpad.net/ubuntu/+source/webalizer/+bug/1399615
+
+Webalizer is using memcpy for overlapping blocks. This is causing undefined behaviour.
+---
+ dns_resolv.c | 2 +-
+ preserve.c   | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/dns_resolv.c b/dns_resolv.c
+index 7462f46..a1ea0cf 100644
+--- a/dns_resolv.c
++++ b/dns_resolv.c
+@@ -886,7 +886,7 @@ char *geodb_get_cc(DB *db, char *ip, char *buf)
+    /* kludge for IPv6 6to4 (RFC3056) */
+    if (addr[0]==0x20 && addr[1]==0x02)
+    {
+-      memcpy(&addr[12],&addr[2],4);
++      memmove(&addr[12],&addr[2],4);
+       memset(&addr,0,12);
+    }
+ 
+diff --git a/preserve.c b/preserve.c
+index fdbedd0..6abad68 100644
+--- a/preserve.c
++++ b/preserve.c
+@@ -109,7 +109,7 @@ void get_history()
+                         yr = hist[i].year;
+                         mth= hist[i].month+1;
+                         if (mth>12) { mth=1; yr++; }
+-                        memcpy(&hist[0], &hist[1], sizeof(hist[0])*i);
++                        memmove(&hist[0], &hist[1], sizeof(hist[0])*i);
+                         memset(&hist[i], 0, sizeof(struct hist_rec));
+                         hist[i].year=yr; hist[i].month=mth; n--;
+                     }
+@@ -282,7 +282,7 @@ void update_history()
+                   yr = hist[i].year;
+                   mth= hist[i].month+1;
+                   if (mth>12) { mth=1; yr++; }
+-                  memcpy(&hist[0],&hist[1],sizeof(hist[0])*i);
++                  memmove(&hist[0],&hist[1],sizeof(hist[0])*i);
+                   memset(&hist[i], 0, sizeof(struct hist_rec));
+                   hist[i].year=yr; hist[i].month=mth; n--;
+                }

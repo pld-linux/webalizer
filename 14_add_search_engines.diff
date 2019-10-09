@@ -1,0 +1,60 @@
+From: Julien Viard de Galbert <julien@vdg.blogsite.org>
+Subject: enable and add more SearchEngines in .conf file
+
+Based on patch
+14_add_search_engines.dpatch by Jose Carlos Medeiros <debian@psabs.com.br>
+Also uncomment all SearchEngines directives.
+
+#################################
+# SearchEngine field for the sensis.com.au search engine
+# http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=327496
+# From: Gavin Rogers <grogers@vk6hgr.echidna.id.au>
+
+################################
+# Support for French versions of Google keywords
+# http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=253830
+# From: Cyril Bouthors <cyb@debian.org>
+No longer needed, the sample configuration matches the ".google." string.
+
+Index: webalizer/sample.conf
+===================================================================
+--- webalizer.orig/sample.conf	2013-10-06 14:58:08.000000000 +0200
++++ webalizer/sample.conf	2013-10-06 14:58:08.000000000 +0200
+@@ -710,21 +710,22 @@
+ # engine, and the second is the URL variable used by that search engine
+ # to define its search terms.
+ 
+-#SearchEngine	.google.   	q=
+-#SearchEngine	yahoo.com	p=
+-#SearchEngine	altavista.com	q=
+-#SearchEngine   aolsearch.      query=
+-#SearchEngine   ask.co          q=
+-#SearchEngine	eureka.com	q=
+-#SearchEngine	lycos.com	query=
+-#SearchEngine	hotbot.com	MT=
+-#SearchEngine	msn.com		q=
+-#SearchEngine	infoseek.com	qt=
+-#SearchEngine	excite		search=
+-#SearchEngine	netscape.com	query=
+-#SearchEngine	mamma.com	query=
+-#SearchEngine	alltheweb.com	q=
+-#SearchEngine	northernlight.com  qr=
++SearchEngine	.google.	q=
++SearchEngine	yahoo.com	p=
++SearchEngine	altavista.com	q=
++SearchEngine	aolsearch.	query=
++SearchEngine	ask.co		q=
++SearchEngine	eureka.com	q=
++SearchEngine	lycos.com	query=
++SearchEngine	hotbot.com	MT=
++SearchEngine	msn.com		q=
++SearchEngine	infoseek.com	qt=
++SearchEngine	excite		search=
++SearchEngine	netscape.com	query=
++SearchEngine	mamma.com	query=
++SearchEngine	alltheweb.com	q=
++SearchEngine	northernlight.com  qr=
++SearchEngine	sensis.com.au	find=
+ 
+ # Normally, search strings are converted to lower case in order to
+ # increase accuracy.  The SearchCaseI option allows them to maintain

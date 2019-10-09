@@ -17,8 +17,8 @@ from Pim van den Berg <pim@nethuis.nl>, Thanks !
 
 Index: webalizer/README.FIRST
 ===================================================================
---- webalizer.orig/README.FIRST	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/README.FIRST	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/README.FIRST	2012-05-08 23:10:52.000000000 +0200
++++ webalizer/README.FIRST	2013-10-06 14:49:14.000000000 +0200
 @@ -19,3 +19,12 @@
  in the subject. Please do not send HTML formatted e-mails or e-mail
  containing HTML tags as my mail server will reject them.  Thanks!
@@ -34,8 +34,8 @@ Index: webalizer/README.FIRST
 +
 Index: webalizer/graphs.c
 ===================================================================
---- webalizer.orig/graphs.c	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/graphs.c	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/graphs.c	2013-10-06 14:34:50.000000000 +0200
++++ webalizer/graphs.c	2013-10-06 14:49:23.000000000 +0200
 @@ -51,6 +51,8 @@
  #define FILECOLOR  file_or_blue            /* files               */
  #define SITECOLOR  site_or_orange          /* sites               */
@@ -302,8 +302,8 @@ Index: webalizer/graphs.c
     {
 Index: webalizer/graphs.h
 ===================================================================
---- webalizer.orig/graphs.h	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/graphs.h	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/graphs.h	2012-05-08 23:10:52.000000000 +0200
++++ webalizer/graphs.h	2013-10-06 14:45:59.000000000 +0200
 @@ -2,7 +2,8 @@
  #define _GRAPHS_H
  
@@ -316,9 +316,9 @@ Index: webalizer/graphs.h
  extern int  pie_chart(char *, char *, u_int64_t, u_int64_t *, char **);
 Index: webalizer/hashtab.c
 ===================================================================
---- webalizer.orig/hashtab.c	2011-04-18 23:54:39.000000000 +0200
-+++ webalizer/hashtab.c	2011-04-18 23:56:44.000000000 +0200
-@@ -155,6 +155,8 @@
+--- webalizer.orig/hashtab.c	2013-10-06 14:34:50.000000000 +0200
++++ webalizer/hashtab.c	2013-10-06 14:49:08.000000000 +0200
+@@ -150,6 +150,8 @@
                 u_int64_t count, /* hit count */
                 u_int64_t file,  /* File flag */
                 double    xfer,  /* xfer size */
@@ -327,7 +327,7 @@ Index: webalizer/hashtab.c
                 u_int64_t *ctr,  /* counter   */
                 u_int64_t visit, /* visits    */
                 u_int64_t tstamp,/* timestamp */
-@@ -177,6 +179,8 @@
+@@ -170,6 +172,8 @@
           nptr->count = count;
           nptr->files = file;
           nptr->xfer  = xfer;
@@ -336,7 +336,7 @@ Index: webalizer/hashtab.c
           nptr->next  = NULL;
           htab[hval] = nptr;
           if (type!=OBJ_GRP) (*ctr)++;
-@@ -219,9 +223,11 @@
+@@ -202,9 +206,11 @@
              if ((type==cptr->flag)||((type!=OBJ_GRP)&&(cptr->flag!=OBJ_GRP)))
              {
                 /* found... bump counter */
@@ -351,7 +351,7 @@ Index: webalizer/hashtab.c
  
                 if (ispage(log_rec.url))
                 {
-@@ -253,6 +259,8 @@
+@@ -232,6 +238,8 @@
           nptr->count = count;
           nptr->files = file;
           nptr->xfer  = xfer;
@@ -360,7 +360,7 @@ Index: webalizer/hashtab.c
           nptr->next  = htab[hval];
           htab[hval]=nptr;
           if (type!=OBJ_GRP) (*ctr)++;
-@@ -361,6 +369,7 @@
+@@ -336,6 +344,7 @@
  /*********************************************/
  
  int put_unode(char *str, int type, u_int64_t count, double xfer,
@@ -368,7 +368,7 @@ Index: webalizer/hashtab.c
                u_int64_t *ctr, u_int64_t entry, u_int64_t exit, UNODEPTR *htab)
  {
     UNODEPTR cptr,nptr;
-@@ -378,6 +387,8 @@
+@@ -353,6 +362,8 @@
           nptr->flag = type;
           nptr->count= count;
           nptr->xfer = xfer;
@@ -377,7 +377,7 @@ Index: webalizer/hashtab.c
           nptr->next = NULL;
           nptr->entry= entry;
           nptr->exit = exit;
-@@ -395,8 +406,10 @@
+@@ -370,8 +381,10 @@
              if ((type==cptr->flag)||((type!=OBJ_GRP)&&(cptr->flag!=OBJ_GRP)))
              {
                 /* found... bump counter */
@@ -390,7 +390,7 @@ Index: webalizer/hashtab.c
                 return 0;
              }
           }
-@@ -408,6 +421,8 @@
+@@ -383,6 +396,8 @@
           nptr->flag = type;
           nptr->count= count;
           nptr->xfer = xfer;
@@ -399,7 +399,7 @@ Index: webalizer/hashtab.c
           nptr->next = htab[hval];
           nptr->entry= entry;
           nptr->exit = exit;
-@@ -846,6 +861,8 @@
+@@ -816,6 +831,8 @@
                 u_int64_t count, /* hit count */
                 u_int64_t file,  /* File flag */
                 double    xfer,  /* xfer size */
@@ -408,7 +408,7 @@ Index: webalizer/hashtab.c
                 u_int64_t *ctr,  /* counter   */
                 u_int64_t visit, /* visits    */
                 u_int64_t tstamp,/* timestamp */
-@@ -867,6 +884,8 @@
+@@ -837,6 +854,8 @@
           nptr->count = count;
           nptr->files = file;
           nptr->xfer  = xfer;
@@ -417,7 +417,7 @@ Index: webalizer/hashtab.c
           nptr->next  = NULL;
           htab[hval] = nptr;
           if (type!=OBJ_GRP) (*ctr)++;
-@@ -893,9 +912,11 @@
+@@ -863,9 +882,11 @@
              if ((type==cptr->flag)||((type!=OBJ_GRP)&&(cptr->flag!=OBJ_GRP)))
              {
                 /* found... bump counter */
@@ -432,7 +432,7 @@ Index: webalizer/hashtab.c
  
                 if (ispage(log_rec.url))
                 {
-@@ -915,6 +936,8 @@
+@@ -885,6 +906,8 @@
           nptr->count = count;
           nptr->files = file;
           nptr->xfer  = xfer;
@@ -443,8 +443,8 @@ Index: webalizer/hashtab.c
           if (type!=OBJ_GRP) (*ctr)++;
 Index: webalizer/hashtab.h
 ===================================================================
---- webalizer.orig/hashtab.h	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/hashtab.h	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/hashtab.h	2012-05-08 23:10:52.000000000 +0200
++++ webalizer/hashtab.h	2013-10-06 14:45:59.000000000 +0200
 @@ -32,6 +32,8 @@
             u_int64_t tstamp;
                  char *lasturl;
@@ -489,8 +489,8 @@ Index: webalizer/hashtab.h
  extern int    put_anode(char *, int, u_int64_t, u_int64_t *, ANODEPTR *);
 Index: webalizer/lang.h
 ===================================================================
---- webalizer.orig/lang.h	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/lang.h	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/lang.h	2012-05-08 23:10:52.000000000 +0200
++++ webalizer/lang.h	2013-10-06 14:49:10.000000000 +0200
 @@ -108,6 +108,8 @@
  extern char *msg_h_files ;
  extern char *msg_h_sites ;
@@ -520,8 +520,8 @@ Index: webalizer/lang.h
  extern char *msg_dtot_ds ;
 Index: webalizer/lang/webalizer_lang.catalan
 ===================================================================
---- webalizer.orig/lang/webalizer_lang.catalan	2011-04-18 23:54:39.000000000 +0200
-+++ webalizer/lang/webalizer_lang.catalan	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/lang/webalizer_lang.catalan	2012-05-08 23:10:52.000000000 +0200
++++ webalizer/lang/webalizer_lang.catalan	2013-10-06 14:45:59.000000000 +0200
 @@ -224,7 +224,9 @@
  char *msg_h_visits= "Visites";
  char *msg_h_files = "Fitxers";
@@ -553,8 +553,8 @@ Index: webalizer/lang/webalizer_lang.catalan
  /* daily total table */
 Index: webalizer/lang/webalizer_lang.chinese
 ===================================================================
---- webalizer.orig/lang/webalizer_lang.chinese	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/lang/webalizer_lang.chinese	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/lang/webalizer_lang.chinese	2012-05-08 23:10:52.000000000 +0200
++++ webalizer/lang/webalizer_lang.chinese	2013-10-06 14:45:59.000000000 +0200
 @@ -218,7 +218,9 @@
  char *msg_h_visits= "Visits";
  char *msg_h_files = "ÀÉ®×";
@@ -588,8 +588,8 @@ Index: webalizer/lang/webalizer_lang.chinese
  /* daily total table */
 Index: webalizer/lang/webalizer_lang.croatian
 ===================================================================
---- webalizer.orig/lang/webalizer_lang.croatian	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/lang/webalizer_lang.croatian	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/lang/webalizer_lang.croatian	2012-05-08 23:10:52.000000000 +0200
++++ webalizer/lang/webalizer_lang.croatian	2013-10-06 14:45:59.000000000 +0200
 @@ -215,7 +215,9 @@
  char *msg_h_visits= "Posjeta";
  char *msg_h_files = "Datoteka";
@@ -625,8 +625,8 @@ Index: webalizer/lang/webalizer_lang.croatian
  /* daily total table */
 Index: webalizer/lang/webalizer_lang.czech
 ===================================================================
---- webalizer.orig/lang/webalizer_lang.czech	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/lang/webalizer_lang.czech	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/lang/webalizer_lang.czech	2012-05-08 23:10:52.000000000 +0200
++++ webalizer/lang/webalizer_lang.czech	2013-10-06 14:45:59.000000000 +0200
 @@ -226,7 +226,9 @@
  char *msg_h_visits= "Náv¹tìv";
  char *msg_h_files = "Souborù";
@@ -660,8 +660,8 @@ Index: webalizer/lang/webalizer_lang.czech
  /* daily total table */
 Index: webalizer/lang/webalizer_lang.danish
 ===================================================================
---- webalizer.orig/lang/webalizer_lang.danish	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/lang/webalizer_lang.danish	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/lang/webalizer_lang.danish	2012-05-08 23:10:52.000000000 +0200
++++ webalizer/lang/webalizer_lang.danish	2013-10-06 14:45:59.000000000 +0200
 @@ -218,7 +218,9 @@
  char *msg_h_visits= "Besøg";
  char *msg_h_files = "Filer";
@@ -697,8 +697,8 @@ Index: webalizer/lang/webalizer_lang.danish
  /* daily total table */
 Index: webalizer/lang/webalizer_lang.dutch
 ===================================================================
---- webalizer.orig/lang/webalizer_lang.dutch	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/lang/webalizer_lang.dutch	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/lang/webalizer_lang.dutch	2012-05-08 23:10:52.000000000 +0200
++++ webalizer/lang/webalizer_lang.dutch	2013-10-06 14:45:59.000000000 +0200
 @@ -234,7 +234,9 @@
  char *msg_h_visits= "Bezoeken";
  char *msg_h_files = "Bestanden";
@@ -734,8 +734,8 @@ Index: webalizer/lang/webalizer_lang.dutch
  /* daily total table */
 Index: webalizer/lang/webalizer_lang.english
 ===================================================================
---- webalizer.orig/lang/webalizer_lang.english	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/lang/webalizer_lang.english	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/lang/webalizer_lang.english	2012-05-08 23:10:52.000000000 +0200
++++ webalizer/lang/webalizer_lang.english	2013-10-06 14:45:59.000000000 +0200
 @@ -219,7 +219,9 @@
  char *msg_h_visits= "Visits";
  char *msg_h_files = "Files";
@@ -771,8 +771,8 @@ Index: webalizer/lang/webalizer_lang.english
  /* daily total table */
 Index: webalizer/lang/webalizer_lang.estonian
 ===================================================================
---- webalizer.orig/lang/webalizer_lang.estonian	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/lang/webalizer_lang.estonian	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/lang/webalizer_lang.estonian	2012-05-08 23:10:52.000000000 +0200
++++ webalizer/lang/webalizer_lang.estonian	2013-10-06 14:45:59.000000000 +0200
 @@ -218,7 +218,9 @@
  char *msg_h_visits= "Külastusi";
  char *msg_h_files = "Faile";
@@ -808,8 +808,8 @@ Index: webalizer/lang/webalizer_lang.estonian
  /* daily total table */
 Index: webalizer/lang/webalizer_lang.finnish
 ===================================================================
---- webalizer.orig/lang/webalizer_lang.finnish	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/lang/webalizer_lang.finnish	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/lang/webalizer_lang.finnish	2012-05-08 23:10:52.000000000 +0200
++++ webalizer/lang/webalizer_lang.finnish	2013-10-06 14:45:59.000000000 +0200
 @@ -226,7 +226,9 @@
  char *msg_h_visits= "vierailuja";
  char *msg_h_files = "tiedostoja";
@@ -845,8 +845,8 @@ Index: webalizer/lang/webalizer_lang.finnish
  /* daily total table */
 Index: webalizer/lang/webalizer_lang.french
 ===================================================================
---- webalizer.orig/lang/webalizer_lang.french	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/lang/webalizer_lang.french	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/lang/webalizer_lang.french	2012-05-08 23:10:52.000000000 +0200
++++ webalizer/lang/webalizer_lang.french	2013-10-06 14:45:59.000000000 +0200
 @@ -253,7 +253,9 @@
  char *msg_h_visits= "Visites";
  char *msg_h_files = "Fichiers";
@@ -882,8 +882,8 @@ Index: webalizer/lang/webalizer_lang.french
  /* daily total table */
 Index: webalizer/lang/webalizer_lang.galician
 ===================================================================
---- webalizer.orig/lang/webalizer_lang.galician	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/lang/webalizer_lang.galician	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/lang/webalizer_lang.galician	2012-05-08 23:10:52.000000000 +0200
++++ webalizer/lang/webalizer_lang.galician	2013-10-06 14:45:59.000000000 +0200
 @@ -223,7 +223,9 @@
  char *msg_h_visits= "Visitas";
  char *msg_h_files = "Arquivos";
@@ -919,8 +919,8 @@ Index: webalizer/lang/webalizer_lang.galician
  /* daily total table */
 Index: webalizer/lang/webalizer_lang.german
 ===================================================================
---- webalizer.orig/lang/webalizer_lang.german	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/lang/webalizer_lang.german	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/lang/webalizer_lang.german	2012-05-08 23:10:52.000000000 +0200
++++ webalizer/lang/webalizer_lang.german	2013-10-06 14:45:59.000000000 +0200
 @@ -243,7 +243,9 @@
  char *msg_h_visits= "Besuche";
  char *msg_h_files = "Dateien";
@@ -956,8 +956,8 @@ Index: webalizer/lang/webalizer_lang.german
  /* daily total table */
 Index: webalizer/lang/webalizer_lang.greek
 ===================================================================
---- webalizer.orig/lang/webalizer_lang.greek	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/lang/webalizer_lang.greek	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/lang/webalizer_lang.greek	2012-05-08 23:10:52.000000000 +0200
++++ webalizer/lang/webalizer_lang.greek	2013-10-06 14:45:59.000000000 +0200
 @@ -217,7 +217,9 @@
  char *msg_h_visits= "ÅðéóêÝøåéò";
  char *msg_h_files = "Áñ÷åßá";
@@ -993,8 +993,8 @@ Index: webalizer/lang/webalizer_lang.greek
  /* daily total table */
 Index: webalizer/lang/webalizer_lang.hungarian
 ===================================================================
---- webalizer.orig/lang/webalizer_lang.hungarian	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/lang/webalizer_lang.hungarian	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/lang/webalizer_lang.hungarian	2012-05-08 23:10:52.000000000 +0200
++++ webalizer/lang/webalizer_lang.hungarian	2013-10-06 14:45:59.000000000 +0200
 @@ -224,7 +224,9 @@
  char *msg_h_visits= "Látogatók";
  char *msg_h_files = "File-ok";
@@ -1030,8 +1030,8 @@ Index: webalizer/lang/webalizer_lang.hungarian
  /* daily total table */
 Index: webalizer/lang/webalizer_lang.icelandic
 ===================================================================
---- webalizer.orig/lang/webalizer_lang.icelandic	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/lang/webalizer_lang.icelandic	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/lang/webalizer_lang.icelandic	2012-05-08 23:10:52.000000000 +0200
++++ webalizer/lang/webalizer_lang.icelandic	2013-10-06 14:45:59.000000000 +0200
 @@ -226,7 +226,9 @@
  char *msg_h_visits= "Heimsóknir";
  char *msg_h_files = "Skrár";
@@ -1067,8 +1067,8 @@ Index: webalizer/lang/webalizer_lang.icelandic
  /* daily total table */
 Index: webalizer/lang/webalizer_lang.indonesian
 ===================================================================
---- webalizer.orig/lang/webalizer_lang.indonesian	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/lang/webalizer_lang.indonesian	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/lang/webalizer_lang.indonesian	2012-05-08 23:10:52.000000000 +0200
++++ webalizer/lang/webalizer_lang.indonesian	2013-10-06 14:45:59.000000000 +0200
 @@ -222,7 +222,9 @@
  char *msg_h_visits= "Kunjungan";
  char *msg_h_files = "File";
@@ -1104,8 +1104,8 @@ Index: webalizer/lang/webalizer_lang.indonesian
  /* daily total table */
 Index: webalizer/lang/webalizer_lang.italian
 ===================================================================
---- webalizer.orig/lang/webalizer_lang.italian	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/lang/webalizer_lang.italian	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/lang/webalizer_lang.italian	2012-05-08 23:10:52.000000000 +0200
++++ webalizer/lang/webalizer_lang.italian	2013-10-06 14:45:59.000000000 +0200
 @@ -221,7 +221,9 @@
  char *msg_h_visits= "Visite";
  char *msg_h_files = "File";
@@ -1141,8 +1141,8 @@ Index: webalizer/lang/webalizer_lang.italian
  /* daily total table */
 Index: webalizer/lang/webalizer_lang.japanese
 ===================================================================
---- webalizer.orig/lang/webalizer_lang.japanese	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/lang/webalizer_lang.japanese	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/lang/webalizer_lang.japanese	2012-05-08 23:10:52.000000000 +0200
++++ webalizer/lang/webalizer_lang.japanese	2013-10-06 14:45:59.000000000 +0200
 @@ -215,7 +215,9 @@
  char *msg_h_visits= "Visits";
  char *msg_h_files = "Files";
@@ -1174,8 +1174,8 @@ Index: webalizer/lang/webalizer_lang.japanese
  /* daily total table */
 Index: webalizer/lang/webalizer_lang.korean
 ===================================================================
---- webalizer.orig/lang/webalizer_lang.korean	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/lang/webalizer_lang.korean	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/lang/webalizer_lang.korean	2012-05-08 23:10:52.000000000 +0200
++++ webalizer/lang/webalizer_lang.korean	2013-10-06 14:45:59.000000000 +0200
 @@ -219,7 +219,9 @@
  char *msg_h_visits= "Visits";
  char *msg_h_files = "Files";
@@ -1211,8 +1211,8 @@ Index: webalizer/lang/webalizer_lang.korean
  /* daily total table */
 Index: webalizer/lang/webalizer_lang.latvian
 ===================================================================
---- webalizer.orig/lang/webalizer_lang.latvian	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/lang/webalizer_lang.latvian	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/lang/webalizer_lang.latvian	2012-05-08 23:10:52.000000000 +0200
++++ webalizer/lang/webalizer_lang.latvian	2013-10-06 14:45:59.000000000 +0200
 @@ -220,7 +220,9 @@
  char *msg_h_visits= "Apmeklçjumi";
  char *msg_h_files = "Faili";
@@ -1248,8 +1248,8 @@ Index: webalizer/lang/webalizer_lang.latvian
  /* daily total table */
 Index: webalizer/lang/webalizer_lang.malay
 ===================================================================
---- webalizer.orig/lang/webalizer_lang.malay	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/lang/webalizer_lang.malay	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/lang/webalizer_lang.malay	2012-05-08 23:10:52.000000000 +0200
++++ webalizer/lang/webalizer_lang.malay	2013-10-06 14:45:59.000000000 +0200
 @@ -220,7 +220,9 @@
  char *msg_h_visits= "Lawatan";
  char *msg_h_files = "Fail";
@@ -1285,8 +1285,8 @@ Index: webalizer/lang/webalizer_lang.malay
  /* daily total table */
 Index: webalizer/lang/webalizer_lang.norwegian
 ===================================================================
---- webalizer.orig/lang/webalizer_lang.norwegian	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/lang/webalizer_lang.norwegian	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/lang/webalizer_lang.norwegian	2012-05-08 23:10:52.000000000 +0200
++++ webalizer/lang/webalizer_lang.norwegian	2013-10-06 14:45:59.000000000 +0200
 @@ -231,7 +231,9 @@
  char *msg_h_visits= "Besøk";
  char *msg_h_files = "Filer";
@@ -1322,8 +1322,8 @@ Index: webalizer/lang/webalizer_lang.norwegian
  /* daily total table */
 Index: webalizer/lang/webalizer_lang.polish
 ===================================================================
---- webalizer.orig/lang/webalizer_lang.polish	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/lang/webalizer_lang.polish	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/lang/webalizer_lang.polish	2012-05-08 23:10:52.000000000 +0200
++++ webalizer/lang/webalizer_lang.polish	2013-10-06 14:45:59.000000000 +0200
 @@ -226,7 +226,9 @@
  char *msg_h_visits= "Wizyty";
  char *msg_h_files = "Pliki";
@@ -1359,8 +1359,8 @@ Index: webalizer/lang/webalizer_lang.polish
  /* daily total table */
 Index: webalizer/lang/webalizer_lang.portuguese
 ===================================================================
---- webalizer.orig/lang/webalizer_lang.portuguese	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/lang/webalizer_lang.portuguese	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/lang/webalizer_lang.portuguese	2012-05-08 23:10:52.000000000 +0200
++++ webalizer/lang/webalizer_lang.portuguese	2013-10-06 14:45:59.000000000 +0200
 @@ -225,7 +225,9 @@
  char *msg_h_visits= "Visitas";
  char *msg_h_files = "Ficheiros";
@@ -1396,8 +1396,8 @@ Index: webalizer/lang/webalizer_lang.portuguese
  /* daily total table */
 Index: webalizer/lang/webalizer_lang.portuguese_brazil
 ===================================================================
---- webalizer.orig/lang/webalizer_lang.portuguese_brazil	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/lang/webalizer_lang.portuguese_brazil	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/lang/webalizer_lang.portuguese_brazil	2012-05-08 23:10:52.000000000 +0200
++++ webalizer/lang/webalizer_lang.portuguese_brazil	2013-10-06 14:45:59.000000000 +0200
 @@ -226,7 +226,9 @@
  char *msg_h_visits= "Visitas";
  char *msg_h_files = "Arquivos";
@@ -1433,8 +1433,8 @@ Index: webalizer/lang/webalizer_lang.portuguese_brazil
  /* daily total table */
 Index: webalizer/lang/webalizer_lang.romanian
 ===================================================================
---- webalizer.orig/lang/webalizer_lang.romanian	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/lang/webalizer_lang.romanian	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/lang/webalizer_lang.romanian	2012-05-08 23:10:52.000000000 +0200
++++ webalizer/lang/webalizer_lang.romanian	2013-10-06 14:45:59.000000000 +0200
 @@ -219,7 +219,9 @@
  char *msg_h_visits= "Vizite";
  char *msg_h_files = "Fisiere";
@@ -1470,8 +1470,8 @@ Index: webalizer/lang/webalizer_lang.romanian
  /* daily total table */
 Index: webalizer/lang/webalizer_lang.romanian-iso-8859-2
 ===================================================================
---- webalizer.orig/lang/webalizer_lang.romanian-iso-8859-2	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/lang/webalizer_lang.romanian-iso-8859-2	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/lang/webalizer_lang.romanian-iso-8859-2	2012-05-08 23:10:52.000000000 +0200
++++ webalizer/lang/webalizer_lang.romanian-iso-8859-2	2013-10-06 14:45:59.000000000 +0200
 @@ -220,7 +220,9 @@
  char *msg_h_visits= "Vizite";
  char *msg_h_files = "Fiºiere";
@@ -1507,8 +1507,8 @@ Index: webalizer/lang/webalizer_lang.romanian-iso-8859-2
  /* daily total table */
 Index: webalizer/lang/webalizer_lang.russian
 ===================================================================
---- webalizer.orig/lang/webalizer_lang.russian	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/lang/webalizer_lang.russian	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/lang/webalizer_lang.russian	2012-05-08 23:10:52.000000000 +0200
++++ webalizer/lang/webalizer_lang.russian	2013-10-06 14:45:59.000000000 +0200
 @@ -232,7 +232,9 @@
  char *msg_h_visits= "ÐÏÓÅÝÅÎÉÊ";
  char *msg_h_files = "ÆÁÊÌÏ×";
@@ -1542,8 +1542,8 @@ Index: webalizer/lang/webalizer_lang.russian
  /* daily total table */
 Index: webalizer/lang/webalizer_lang.serbian
 ===================================================================
---- webalizer.orig/lang/webalizer_lang.serbian	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/lang/webalizer_lang.serbian	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/lang/webalizer_lang.serbian	2012-05-08 23:10:52.000000000 +0200
++++ webalizer/lang/webalizer_lang.serbian	2013-10-06 14:45:59.000000000 +0200
 @@ -215,7 +215,9 @@
  char *msg_h_visits= "Poseta";
  char *msg_h_files = "Fajlova";
@@ -1579,8 +1579,8 @@ Index: webalizer/lang/webalizer_lang.serbian
  /* daily total table */
 Index: webalizer/lang/webalizer_lang.simplified_chinese
 ===================================================================
---- webalizer.orig/lang/webalizer_lang.simplified_chinese	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/lang/webalizer_lang.simplified_chinese	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/lang/webalizer_lang.simplified_chinese	2012-05-08 23:10:52.000000000 +0200
++++ webalizer/lang/webalizer_lang.simplified_chinese	2013-10-06 14:45:59.000000000 +0200
 @@ -214,7 +214,9 @@
  char *msg_h_visits= "·ÃÎÊ";
  char *msg_h_files = "ÎÄ¼þ";
@@ -1612,8 +1612,8 @@ Index: webalizer/lang/webalizer_lang.simplified_chinese
  /* daily total table */
 Index: webalizer/lang/webalizer_lang.slovak
 ===================================================================
---- webalizer.orig/lang/webalizer_lang.slovak	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/lang/webalizer_lang.slovak	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/lang/webalizer_lang.slovak	2012-05-08 23:10:52.000000000 +0200
++++ webalizer/lang/webalizer_lang.slovak	2013-10-06 14:45:59.000000000 +0200
 @@ -224,7 +224,9 @@
  char *msg_h_visits= "náv¹tev";
  char *msg_h_files = "súborov";
@@ -1649,8 +1649,8 @@ Index: webalizer/lang/webalizer_lang.slovak
  /* daily total table */
 Index: webalizer/lang/webalizer_lang.slovene
 ===================================================================
---- webalizer.orig/lang/webalizer_lang.slovene	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/lang/webalizer_lang.slovene	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/lang/webalizer_lang.slovene	2012-05-08 23:10:52.000000000 +0200
++++ webalizer/lang/webalizer_lang.slovene	2013-10-06 14:45:59.000000000 +0200
 @@ -215,7 +215,9 @@
  char *msg_h_visits= "Obiskov";
  char *msg_h_files = "Datotek";
@@ -1686,8 +1686,8 @@ Index: webalizer/lang/webalizer_lang.slovene
  /* daily Skupaj table */
 Index: webalizer/lang/webalizer_lang.spanish
 ===================================================================
---- webalizer.orig/lang/webalizer_lang.spanish	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/lang/webalizer_lang.spanish	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/lang/webalizer_lang.spanish	2012-05-08 23:10:52.000000000 +0200
++++ webalizer/lang/webalizer_lang.spanish	2013-10-06 14:45:59.000000000 +0200
 @@ -232,7 +232,9 @@
  char *msg_h_visits= "Visitas";
  char *msg_h_files = "Archivos";
@@ -1723,8 +1723,8 @@ Index: webalizer/lang/webalizer_lang.spanish
  /* daily total table */
 Index: webalizer/lang/webalizer_lang.swedish
 ===================================================================
---- webalizer.orig/lang/webalizer_lang.swedish	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/lang/webalizer_lang.swedish	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/lang/webalizer_lang.swedish	2012-05-08 23:10:52.000000000 +0200
++++ webalizer/lang/webalizer_lang.swedish	2013-10-06 14:45:59.000000000 +0200
 @@ -243,7 +243,9 @@
  char *msg_h_visits= "Besök.";	//	GD
  char *msg_h_files = "Filer";
@@ -1760,8 +1760,8 @@ Index: webalizer/lang/webalizer_lang.swedish
  /* daily total table */
 Index: webalizer/lang/webalizer_lang.turkish
 ===================================================================
---- webalizer.orig/lang/webalizer_lang.turkish	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/lang/webalizer_lang.turkish	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/lang/webalizer_lang.turkish	2012-05-08 23:10:52.000000000 +0200
++++ webalizer/lang/webalizer_lang.turkish	2013-10-06 14:45:59.000000000 +0200
 @@ -220,7 +220,9 @@
  char *msg_h_visits= "Ziyaret";
  char *msg_h_files = "Dosya";
@@ -1797,8 +1797,8 @@ Index: webalizer/lang/webalizer_lang.turkish
  /* daily total table */
 Index: webalizer/lang/webalizer_lang.ukrainian
 ===================================================================
---- webalizer.orig/lang/webalizer_lang.ukrainian	2011-04-18 23:54:39.000000000 +0200
-+++ webalizer/lang/webalizer_lang.ukrainian	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/lang/webalizer_lang.ukrainian	2012-05-08 23:10:52.000000000 +0200
++++ webalizer/lang/webalizer_lang.ukrainian	2013-10-06 14:45:59.000000000 +0200
 @@ -224,7 +224,9 @@
  char *msg_h_visits= "×¦Ä×¦Ä.";
  char *msg_h_files = "ÆÁÊÌ¦×";
@@ -1832,8 +1832,8 @@ Index: webalizer/lang/webalizer_lang.ukrainian
  /* daily total table */
 Index: webalizer/output.c
 ===================================================================
---- webalizer.orig/output.c	2011-04-18 23:56:42.000000000 +0200
-+++ webalizer/output.c	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/output.c	2013-10-06 14:45:59.000000000 +0200
++++ webalizer/output.c	2013-10-06 14:49:23.000000000 +0200
 @@ -308,8 +308,10 @@
                        tm_file,             /* data 2 (files)    */
                        tm_site,             /* data 3 (sites)    */
@@ -2591,8 +2591,8 @@ Index: webalizer/output.c
            "<FONT SIZE=\"-1\">%.0f</FONT></TH>\n",GREY,gt_pages);
 Index: webalizer/parser.c
 ===================================================================
---- webalizer.orig/parser.c	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/parser.c	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/parser.c	2013-10-06 14:34:50.000000000 +0200
++++ webalizer/parser.c	2013-10-06 14:49:08.000000000 +0200
 @@ -199,6 +199,9 @@
     /* return appropriate response code */
     log_rec.resp_code=(*(eob-2)=='i')?206:200;
@@ -2634,8 +2634,8 @@ Index: webalizer/parser.c
  }
 Index: webalizer/preserve.c
 ===================================================================
---- webalizer.orig/preserve.c	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/preserve.c	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/preserve.c	2013-10-06 14:34:50.000000000 +0200
++++ webalizer/preserve.c	2013-10-06 14:49:08.000000000 +0200
 @@ -121,7 +121,8 @@
           if (i>=0)
           {
@@ -2893,8 +2893,8 @@ Index: webalizer/preserve.c
           if (verbose)
 Index: webalizer/preserve.h
 ===================================================================
---- webalizer.orig/preserve.h	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/preserve.h	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/preserve.h	2012-05-08 23:10:52.000000000 +0200
++++ webalizer/preserve.h	2013-10-06 14:45:59.000000000 +0200
 @@ -21,6 +21,8 @@
                    u_int64_t   page;           /* pages for month          */
                    u_int64_t   visit;          /* visits for month         */
@@ -2906,8 +2906,8 @@ Index: webalizer/preserve.h
  extern struct hist_rec hist[HISTSIZE];        /* declare our hist array   */
 Index: webalizer/webalizer.c
 ===================================================================
---- webalizer.orig/webalizer.c	2011-04-18 23:54:39.000000000 +0200
-+++ webalizer/webalizer.c	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/webalizer.c	2013-10-06 14:34:50.000000000 +0200
++++ webalizer/webalizer.c	2013-10-06 14:49:23.000000000 +0200
 @@ -216,11 +216,15 @@
  int        gz_log=COMP_NONE;                  /* gziped log? (0=no)       */
  
@@ -3060,8 +3060,8 @@ Index: webalizer/webalizer.c
  }
 Index: webalizer/webalizer.h
 ===================================================================
---- webalizer.orig/webalizer.h	2011-04-18 23:54:32.000000000 +0200
-+++ webalizer/webalizer.h	2011-04-18 23:56:44.000000000 +0200
+--- webalizer.orig/webalizer.h	2013-10-06 14:34:50.000000000 +0200
++++ webalizer/webalizer.h	2013-10-06 14:49:23.000000000 +0200
 @@ -144,7 +144,9 @@
                             char *desc;            /* TLD description      */
                        u_int64_t count;            /* hit counter          */

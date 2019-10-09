@@ -19,11 +19,11 @@ He described his patch as follows:
 #    -        case 't': msg_title=optarg;          break;  /* Report title        */
 #    +        case 't': _("Usage Statistics for")=optarg;          break;  /* Report title        */
 #    To do it, just look at .diff files and after remove these one.
-# 5. Looked for strings that arent msg_*, like new string put with fprintf, ex.
+# 5. Looked for strings that aren't msg_*, like new string put with fprintf, ex.
 #    fprintf(stderr,"%s %s!\n","Error: File is a symlink",log_fname);
 #    in webalizer.c file
 #    grep \" *.c |grep -v "_(\"" |less
-# 6. Found and change string that arent msg_* .  Patch of Geolizer is an example.
+# 6. Found and change string that aren't msg_* .  Patch of Geolizer is an example.
 #    It put messages like "Error, something..." and we need to change to _("Error, som...")
 # 7. Created webalizer.pot file with the follow command:
 #    xgettext --default-domain=webalizer --directory=. -o po/webalizer.pot \
@@ -98,11 +98,11 @@ It handles the following bugs as well:
 
 Index: webalizer/Makefile.in
 ===================================================================
---- webalizer.orig/Makefile.in	2011-01-07 19:11:55.000000000 +0100
-+++ webalizer/Makefile.in	2011-01-07 19:13:13.000000000 +0100
+--- webalizer.orig/Makefile.in	2013-10-06 14:48:22.000000000 +0200
++++ webalizer/Makefile.in	2013-10-06 14:48:22.000000000 +0200
 @@ -23,10 +23,11 @@
  BINDIR          = @bindir@
- MANDIR          = ${datadir}/man/man1
+ MANDIR          = @mandir@/man1
  ETCDIR          = @sysconfdir@
 +LOCALEDIR       = @localedir@
  GEODB           = @GEODB_LOC@
@@ -140,7 +140,7 @@ Index: webalizer/Makefile.in
  
  parser.o:	parser.c parser.h webalizer.h lang.h
 @@ -81,14 +85,16 @@
- wcmgr.o:	wcmgr.c
+ wcmgr.o:	wcmgr.c webalizer.h
  	$(CC) ${CFLAGS} ${DEFS} -c wcmgr.c
  
 +$(LANGS:%=po/%.mo): %.mo: %.po
@@ -175,8 +175,8 @@ Index: webalizer/Makefile.in
 +	for a in $(LANGS); do rm -f $(LOCALEDIR)/$$a/LC_MESSAGES/webalizer.mo; done
 Index: webalizer/configure.in
 ===================================================================
---- webalizer.orig/configure.in	2011-01-07 19:12:51.000000000 +0100
-+++ webalizer/configure.in	2011-01-07 19:13:13.000000000 +0100
+--- webalizer.orig/configure.in	2013-10-06 14:48:22.000000000 +0200
++++ webalizer/configure.in	2013-10-06 14:48:22.000000000 +0200
 @@ -281,43 +281,16 @@
    if test "$OLDHASH" = "yes"; then OPTS="-DUSE_OLDHASH"; fi
  
@@ -229,8 +229,8 @@ Index: webalizer/configure.in
  dnl done.. write out our Makefile
 Index: webalizer/dns_resolv.c
 ===================================================================
---- webalizer.orig/dns_resolv.c	2011-01-07 19:11:55.000000000 +0100
-+++ webalizer/dns_resolv.c	2011-01-07 19:13:13.000000000 +0100
+--- webalizer.orig/dns_resolv.c	2013-10-06 14:48:22.000000000 +0200
++++ webalizer/dns_resolv.c	2013-10-06 14:49:08.000000000 +0200
 @@ -120,7 +120,7 @@
     query.data = log_rec->hostname;
     query.size = strlen(log_rec->hostname);
@@ -425,8 +425,8 @@ Index: webalizer/dns_resolv.c
     }
 Index: webalizer/graphs.c
 ===================================================================
---- webalizer.orig/graphs.c	2011-01-07 19:12:51.000000000 +0100
-+++ webalizer/graphs.c	2011-01-07 19:13:13.000000000 +0100
+--- webalizer.orig/graphs.c	2013-10-06 14:48:22.000000000 +0200
++++ webalizer/graphs.c	2013-10-06 14:49:08.000000000 +0200
 @@ -217,12 +217,12 @@
        if (graph_mths<16)
        {
@@ -444,8 +444,8 @@ Index: webalizer/graphs.c
        else
 Index: webalizer/lang.h
 ===================================================================
---- webalizer.orig/lang.h	2011-01-07 19:12:27.000000000 +0100
-+++ webalizer/lang.h	2011-01-07 19:13:13.000000000 +0100
+--- webalizer.orig/lang.h	2013-10-06 14:48:22.000000000 +0200
++++ webalizer/lang.h	2013-10-06 14:48:22.000000000 +0200
 @@ -1,187 +1,20 @@
  #ifndef _LANG_H
  #define _LANG_H
@@ -644,7 +644,7 @@ Index: webalizer/lang.h
 Index: webalizer/lang2.h
 ===================================================================
 --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ webalizer/lang2.h	2011-01-07 19:13:13.000000000 +0100
++++ webalizer/lang2.h	2013-10-06 14:48:22.000000000 +0200
 @@ -0,0 +1,435 @@
 +/*
 +   webalizer_lang.english
@@ -694,14 +694,14 @@ Index: webalizer/lang2.h
 +         gettext_noop("-i        = ignore history file")                 ,
 +         gettext_noop("-p        = preserve state (incremental)")        ,
 +         gettext_noop("-b        = ignore state (incremental)")          ,
-+         gettext_noop("-q        = supress informational messages")      ,
-+         gettext_noop("-Q        = supress _ALL_ messages")              ,
-+         gettext_noop("-Y        = supress country graph")               ,
-+         gettext_noop("-G        = supress hourly graph")                ,
-+         gettext_noop("-H        = supress hourly stats")                ,
-+         gettext_noop("-L        = supress color coded graph legends")   ,
++         gettext_noop("-q        = suppress informational messages")      ,
++         gettext_noop("-Q        = suppress _ALL_ messages")              ,
++         gettext_noop("-Y        = suppress country graph")               ,
++         gettext_noop("-G        = suppress hourly graph")                ,
++         gettext_noop("-H        = suppress hourly stats")                ,
++         gettext_noop("-L        = suppress color coded graph legends")   ,
 +         gettext_noop("-l num    = use num background lines on graph")   ,
-+         gettext_noop("-m num    = Visit timout value (seconds)")        ,
++         gettext_noop("-m num    = Visit timeout value (seconds)")        ,
 +         gettext_noop("-T        = print timing information")            ,
 +         gettext_noop("-c file   = use configuration file 'file'")       ,
 +         gettext_noop("-n name   = hostname to use")                     ,
@@ -1084,7 +1084,7 @@ Index: webalizer/lang2.h
 Index: webalizer/lang_po.sh
 ===================================================================
 --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ webalizer/lang_po.sh	2011-01-07 19:13:13.000000000 +0100
++++ webalizer/lang_po.sh	2013-10-06 14:48:22.000000000 +0200
 @@ -0,0 +1,24 @@
 +#!/bin/bash
 +# create  lang.txt file with vars and strings from webalizer_lang.english file
@@ -1112,8 +1112,8 @@ Index: webalizer/lang_po.sh
 +rm -f lang_po_exec.sh lang.txt;
 Index: webalizer/output.c
 ===================================================================
---- webalizer.orig/output.c	2011-01-07 19:12:31.000000000 +0100
-+++ webalizer/output.c	2011-01-07 19:13:13.000000000 +0100
+--- webalizer.orig/output.c	2013-10-06 14:48:22.000000000 +0200
++++ webalizer/output.c	2013-10-06 14:49:08.000000000 +0200
 @@ -191,7 +191,7 @@
  
     fprintf(out_fp,"<HTML lang=\"%s\">\n<HEAD>\n",langcode);
@@ -1305,7 +1305,7 @@ Index: webalizer/output.c
 Index: webalizer/update_po.sh
 ===================================================================
 --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ webalizer/update_po.sh	2011-01-07 19:13:13.000000000 +0100
++++ webalizer/update_po.sh	2013-10-06 14:48:22.000000000 +0200
 @@ -0,0 +1,9 @@
 +# 7. Created webalizer.pot file with the follow command:
 +    xgettext --default-domain=webalizer --directory=. -o po/webalizer.pot \
@@ -1318,8 +1318,8 @@ Index: webalizer/update_po.sh
 +
 Index: webalizer/webalizer.c
 ===================================================================
---- webalizer.orig/webalizer.c	2011-01-07 19:12:51.000000000 +0100
-+++ webalizer/webalizer.c	2011-01-07 19:13:13.000000000 +0100
+--- webalizer.orig/webalizer.c	2013-10-06 14:48:22.000000000 +0200
++++ webalizer/webalizer.c	2013-10-06 14:49:08.000000000 +0200
 @@ -86,7 +86,7 @@
  #include "preserve.h"
  #include "hashtab.h"
@@ -1483,8 +1483,8 @@ Index: webalizer/webalizer.c
 +
 Index: webalizer/webalizer.h
 ===================================================================
---- webalizer.orig/webalizer.h	2011-01-07 19:12:31.000000000 +0100
-+++ webalizer/webalizer.h	2011-01-07 19:13:13.000000000 +0100
+--- webalizer.orig/webalizer.h	2013-10-06 14:48:22.000000000 +0200
++++ webalizer/webalizer.h	2013-10-06 14:48:22.000000000 +0200
 @@ -301,7 +301,7 @@
  extern char    pie_color3[];                  /* pie additionnal color 3  */
  extern char    pie_color4[];                  /* pie additionnal color 4  */
