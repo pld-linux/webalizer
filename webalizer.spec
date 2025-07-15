@@ -122,26 +122,26 @@ Webalizer i dokumentacja do niego.
 
 %prep
 %setup -q -n %{name}-%{ver}-%{patchlvl}
-%patch100 -p1
-%patch101 -p1
-%patch102 -p1
-%patch103 -p1
-%patch104 -p1
-%patch105 -p1
-%patch106 -p1
-%patch107 -p1
-%patch108 -p1
-%patch109 -p1
-%patch110 -p1
-%patch111 -p1
-%patch112 -p1
-%patch113 -p1
-%patch114 -p1
-%patch115 -p1
-%patch116 -p1
+%patch -P100 -p1
+%patch -P101 -p1
+%patch -P102 -p1
+%patch -P103 -p1
+%patch -P104 -p1
+%patch -P105 -p1
+%patch -P106 -p1
+%patch -P107 -p1
+%patch -P108 -p1
+%patch -P109 -p1
+%patch -P110 -p1
+%patch -P111 -p1
+%patch -P112 -p1
+%patch -P113 -p1
+%patch -P114 -p1
+%patch -P115 -p1
+%patch -P116 -p1
 
-%patch0 -p1
-%patch1 -p1
+%patch -P0 -p1
+%patch -P1 -p1
 
 mv -f po/{no,nb}.po
 mv -f po/{sr,sr@latin}.po
